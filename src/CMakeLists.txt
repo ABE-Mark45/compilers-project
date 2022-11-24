@@ -1,2 +1,3 @@
 add_subdirectory(LanguageRulesParser)
 add_subdirectory(LanguageTokens)
+add_subdirectory(NFA)
