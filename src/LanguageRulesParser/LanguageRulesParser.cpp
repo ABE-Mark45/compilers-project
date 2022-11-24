@@ -6,21 +6,26 @@
 #include <unordered_set>
 #include <vector>
 
+namespace {
+std::unordered_set<char> regexCharacters{'*', '|', '+', '.', '(', ')'};
+};
+
+using namespace Token;
+
 void LanguageRulesParser::parseDef(const std::string& identifier,
                                    const std::string& line, int idx) {
   int len = line.size();
-  std::unordered_set<char> regexCharacters{'*', '|', '+', '.', '(', ')'};
-  std::vector<std::string> tokens;
+  std::vector<TokenType> tokens;
 
   while (idx < len) {
     if (regexCharacters.count(line[idx])) {
-      tokens.emplace_back(std::string(1, line[idx]));
+      tokens.emplace_back(MetaCharacter(line[idx]));
       idx++;
     } else if (line[idx] == '[') {
       if (idx + 4 < len && std::isalnum(line[idx + 1]) &&
           line[idx + 2] == '-' && std::isalnum(line[idx + 3]) &&
           line[idx + 4] == ']' && line[idx + 1] <= line[idx + 3]) {
-        tokens.emplace_back(line.substr(idx + 1, 3));
+        tokens.emplace_back(CharacterGroup(line[idx + 1], line[idx + 3]));
         idx += 5;
       } else {
         throw std::runtime_error("Invalid character group");
@@ -38,10 +43,19 @@ void LanguageRulesParser::parseDef(const std::string& identifier,
       }
 
       const auto& regexDefTokens = regexDefinitions[regexDef];
-      tokens.emplace_back("(");
+      tokens.emplace_back(MetaCharacter('('));
       tokens.insert(tokens.end(), regexDefTokens.begin(), regexDefTokens.end());
-      tokens.emplace_back(")");
-    } else {
+      tokens.emplace_back(MetaCharacter(')'));
+    } else if (line[idx] == '\\') {
+      if (idx + 1 < len) {
+        tokens.emplace_back(ReservedCharacter(line[idx + 1]));
+        idx += 2;
+      } else {
+        throw std::runtime_error("Expected character after backslash");
+      }
+    }
+
+    else {
       throw std::runtime_error("Unexpected character " + line[idx]);
     }
   }
@@ -81,8 +95,18 @@ void LanguageRulesParser::show() {
   for (const auto& [identifier, tokens] : regexDefinitions) {
     std::cout << "Identifier: " << identifier << std::endl << "Tokens: ";
     for (const auto& token : tokens) {
-      std::cout << token << '\t';
+      if (auto* t = std::get_if<MetaCharacter>(&token)) {
+        std::cout << t->c_;
+      } else if (auto* t = std::get_if<Identifier>(&token)) {
+        std::cout << t->name_;
+      } else if (auto* t = std::get_if<ReservedCharacter>(&token)) {
+        std::cout << '\\' << t->c_;
+      } else if (auto* t = std::get_if<CharacterGroup>(&token)) {
+        std::cout << t->begin_ << '-' << t->end_;
+      }
+
+      std::cout << '\t';
     }
-    std::cout << "\n\n";
+    std::cout << std::endl;
   }
 }
