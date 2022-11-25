@@ -2,6 +2,7 @@
 
 #include <LanguageTokens/Token.h>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -9,24 +10,25 @@
 
 class State {
 
+  explicit State(std::optional<std::string> acceptValue = std::nullopt)
+      : acceptValue_(acceptValue) {}
+
   // Computes epsilon closure of the current state given the mapping between each state ID and its internal data
-  std::set<int> epsilonClosure(
-      std::unordered_map<int, std::shared_ptr<State>>& idToState) const;
+  std::set<int> epsilonClosure() const;
 
   // Computes epsilon closure of the current state after moving through
   // the specified transition given the mapping between each state ID and its internal data
-  std::set<int> moveThrough(
-      char transition,
-      std::unordered_map<int, std::shared_ptr<State>>& idToState) const;
+  std::set<int> moveThrough(char transition) const;
 
  private:
   // A utility function for the epsilon closure
-  void epsilonClosure(
-      int id, std::set<int>& closure,
-      std::unordered_map<int, std::shared_ptr<State>>& idToState) const;
+  void epsilonClosure(std::shared_ptr<State> state,
+                      std::set<int>& closure) const;
 
   // State ID
   int id_;
-  // mapping between transitions and state IDs
-  std::unordered_map<char, std::vector<int>> transitions_;
+  // mapping between transitions and states
+  std::unordered_map<char, std::vector<std::shared_ptr<State>>> transitions_;
+  // State accept value
+  std::optional<std::string> acceptValue_;
 };
