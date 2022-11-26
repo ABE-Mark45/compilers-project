@@ -9,7 +9,7 @@
 #include <vector>
 
 class State {
-
+ public:
   explicit State(std::optional<std::string> acceptValue = std::nullopt)
       : acceptValue_(acceptValue) {}
 
