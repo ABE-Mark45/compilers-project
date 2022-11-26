@@ -13,12 +13,21 @@ class State {
   explicit State(std::optional<std::string> acceptValue = std::nullopt)
       : acceptValue_(acceptValue) {}
 
+  static std::unique_ptr<State> createState(
+      std::optional<std::string> acceptValue = std::nullopt);
+
   // Computes epsilon closure of the current state given the mapping between each state ID and its internal data
   std::set<int> epsilonClosure() const;
 
   // Computes epsilon closure of the current state after moving through
   // the specified transition given the mapping between each state ID and its internal data
   std::set<int> moveThrough(char transition) const;
+
+  // Adds a transition through character to state
+  void addTransition(char transition, std::shared_ptr<State> otherState);
+
+  // A convenience function for epsilon transitions
+  void addLambdaTransition(std::shared_ptr<State> otherState);
 
  private:
   // A utility function for the epsilon closure

@@ -4,6 +4,11 @@ namespace {
 constexpr auto kLambdaTransition = '\0';
 }
 
+/*static*/ std::unique_ptr<State> createState(
+    std::optional<std::string> acceptValue) {
+  return std::make_unique<State>(acceptValue);
+}
+
 std::set<int> State::epsilonClosure() const {
   std::set<int> closure;
 
@@ -40,4 +45,12 @@ void State::epsilonClosure(std::shared_ptr<State> state,
       epsilonClosure(otherState, closure);
     }
   }
+}
+
+void State::addTransition(char transition, std::shared_ptr<State> otherState) {
+  transitions_[transition].emplace_back(otherState);
+}
+
+void State::addLambdaTransition(std::shared_ptr<State> otherState) {
+  addTransition(kLambdaTransition, otherState);
 }
