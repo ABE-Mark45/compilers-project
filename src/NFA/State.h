@@ -27,7 +27,7 @@ class State {
   void addTransition(char transition, std::shared_ptr<State> otherState);
 
   // A convenience function for epsilon transitions
-  void addLambdaTransition(std::shared_ptr<State> otherState);
+  void addEpsilonTransition(std::shared_ptr<State> otherState);
 
  private:
   // A utility function for the epsilon closure

@@ -1,7 +1,7 @@
 #include <NFA/State.h>
 
 namespace {
-constexpr auto kLambdaTransition = '\0';
+constexpr auto kEpsilonTransition = '\0';
 }
 
 /*static*/ std::unique_ptr<State> createState(
@@ -36,11 +36,11 @@ void State::epsilonClosure(std::shared_ptr<State> state,
                            std::set<int>& closure) const {
   closure.insert(state->id_);
 
-  if (state->transitions_.count(kLambdaTransition) == 0) {
+  if (state->transitions_.count(kEpsilonTransition) == 0) {
     return;
   }
 
-  for (const auto otherState : state->transitions_.at(kLambdaTransition)) {
+  for (const auto otherState : state->transitions_.at(kEpsilonTransition)) {
     if (closure.count(otherState->id_) == 0) {
       epsilonClosure(otherState, closure);
     }
@@ -51,6 +51,6 @@ void State::addTransition(char transition, std::shared_ptr<State> otherState) {
   transitions_[transition].emplace_back(otherState);
 }
 
-void State::addLambdaTransition(std::shared_ptr<State> otherState) {
-  addTransition(kLambdaTransition, otherState);
+void State::addEpsilonTransition(std::shared_ptr<State> otherState) {
+  addTransition(kEpsilonTransition, otherState);
 }
