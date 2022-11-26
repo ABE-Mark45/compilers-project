@@ -1,5 +1,6 @@
 set(NFA_SOURCES
     State.cpp
+    NFA.cpp
 )
 
 add_library(NFA STATIC ${NFA_SOURCES})

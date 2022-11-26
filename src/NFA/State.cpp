@@ -12,7 +12,7 @@ constexpr auto kEpsilonTransition = '\0';
 std::set<int> State::epsilonClosure() const {
   std::set<int> closure;
 
-  epsilonClosure(std::shared_ptr<const State>(this), closure);
+  epsilonClosure(std::make_shared<const State>(this), closure);
   return closure;
 }
 
