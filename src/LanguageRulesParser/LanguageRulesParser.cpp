@@ -33,7 +33,7 @@ bool LanguageRulesParser::shouldConcatenate(
 }
 
 void LanguageRulesParser::parseDef(const std::string& identifier,
-                                   const std::string& line, int idx) {
+                                   std::string_view line, int idx) {
   int len = line.size();
   std::vector<Token> tokens;
 
@@ -121,14 +121,15 @@ void LanguageRulesParser::parseDef(const std::string& identifier,
     }
 
     else {
-      throw std::runtime_error("Unexpected character " + line[idx]);
+      throw std::runtime_error("Unexpected character " +
+                               std::string(1, line[idx]));
     }
   }
 
   regexDefinitions[identifier] = std::move(tokens);
 }
 
-void LanguageRulesParser::parseDefOrExp(const std::string& line) {
+void LanguageRulesParser::parseDefOrExp(std::string_view line) {
   int idx = 0;
   std::string identifier;
   while (idx < line.size() && isalpha(line[idx])) {
@@ -146,7 +147,7 @@ void LanguageRulesParser::parseDefOrExp(const std::string& line) {
   }
 }
 
-void LanguageRulesParser::parseLine(const std::string& line) {
+void LanguageRulesParser::parseLine(std::string_view line) {
   if (std::isalpha(line[0])) {
     parseDefOrExp(line);
   } else if (line[0] == '[') {

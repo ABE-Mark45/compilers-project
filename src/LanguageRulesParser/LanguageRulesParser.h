@@ -10,7 +10,7 @@ class LanguageRulesParser {
 
  public:
   // Interface to parsing logic
-  void parseLine(const std::string& line);
+  void parseLine(std::string_view line);
 
   // Debugging function that outputs all parsed tokens
   void show() const;
@@ -27,11 +27,10 @@ class LanguageRulesParser {
 
  private:
   // Parse a definition line on the form <identifier>=<regex>
-  void parseDef(const std::string& identifier, const std::string& line,
-                int idx);
+  void parseDef(const std::string& identifier, std::string_view line, int idx);
 
   // A helper function to control whether to parse a regex definition or expression
-  void parseDefOrExp(const std::string& line);
+  void parseDefOrExp(std::string_view line);
 
   // A helper function to indicate if concatenation should be added
   bool shouldConcatenate(const std::vector<Token>& tokens) const;
