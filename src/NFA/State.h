@@ -24,20 +24,21 @@ class State {
   std::set<int> moveThrough(char transition) const;
 
   // Adds a transition through character to state
-  void addTransition(char transition, std::shared_ptr<State> otherState);
+  void addTransition(char transition, std::shared_ptr<const State> otherState);
 
   // A convenience function for epsilon transitions
-  void addEpsilonTransition(std::shared_ptr<State> otherState);
+  void addEpsilonTransition(std::shared_ptr<const State> otherState);
 
  private:
   // A utility function for the epsilon closure
-  void epsilonClosure(std::shared_ptr<State> state,
+  void epsilonClosure(std::shared_ptr<const State> state,
                       std::set<int>& closure) const;
 
   // State ID
   int id_;
   // mapping between transitions and states
-  std::unordered_map<char, std::vector<std::shared_ptr<State>>> transitions_;
+  std::unordered_map<char, std::vector<std::shared_ptr<const State>>>
+      transitions_;
   // State accept value
   std::optional<std::string> acceptValue_;
 };

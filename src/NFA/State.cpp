@@ -12,7 +12,7 @@ constexpr auto kEpsilonTransition = '\0';
 std::set<int> State::epsilonClosure() const {
   std::set<int> closure;
 
-  epsilonClosure(std::make_shared<State>(this), closure);
+  epsilonClosure(std::shared_ptr<const State>(this), closure);
   return closure;
 }
 
@@ -32,7 +32,7 @@ std::set<int> State::moveThrough(char transition) const {
   return closure;
 }
 
-void State::epsilonClosure(std::shared_ptr<State> state,
+void State::epsilonClosure(std::shared_ptr<const State> state,
                            std::set<int>& closure) const {
   closure.insert(state->id_);
 
@@ -47,10 +47,11 @@ void State::epsilonClosure(std::shared_ptr<State> state,
   }
 }
 
-void State::addTransition(char transition, std::shared_ptr<State> otherState) {
+void State::addTransition(char transition,
+                          std::shared_ptr<const State> otherState) {
   transitions_[transition].emplace_back(otherState);
 }
 
-void State::addEpsilonTransition(std::shared_ptr<State> otherState) {
+void State::addEpsilonTransition(std::shared_ptr<const State> otherState) {
   addTransition(kEpsilonTransition, otherState);
 }
