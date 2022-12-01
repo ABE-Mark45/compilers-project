@@ -23,7 +23,7 @@ void NFA::concatenate(std::shared_ptr<NFA> otherNFA) {
   endState_ = std::move(otherNFA->endState_);
 }
 
-void NFA::combine(std::shared_ptr<NFA> otherNFA) {
+void NFA::unite(std::shared_ptr<NFA> otherNFA) {
   auto newStartState = std::make_shared<State>();
   auto newEndState = std::make_shared<State>();
 
