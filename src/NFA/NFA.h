@@ -18,7 +18,8 @@ class NFA {
 
   // consume another NFA and construct a combined machine with both possible paths
   // (i.e. M1: aa, M2: bb -> M1: (aa)|(bb))
-  void combine(std::shared_ptr<NFA> otherNFA);
+  // I wanted to call it union but union is a reserved word
+  void unite(std::shared_ptr<NFA> otherNFA);
 
   // Applies Kleene star operation on the machine
   void kleeneStar();

@@ -32,16 +32,20 @@ std::set<int> State::moveThrough(char transition) const {
   return closure;
 }
 
-void State::epsilonClosure(std::shared_ptr<const State> state,
+void State::epsilonClosure(std::shared_ptr<const State> s,
                            std::set<int>& closure) const {
   closure.insert(state->id_);
 
-  if (state->transitions_.count(kEpsilonTransition) == 0) {
+  // if no epsilon transitions from s, end the algorithm
+  if (s->transitions_.count(kEpsilonTransition) == 0) {
     return;
   }
 
-  for (const auto otherState : state->transitions_.at(kEpsilonTransition)) {
+  // for each state that can be reached from s via an epsilon transition
+  for (const auto otherState : s->transitions_.at(kEpsilonTransition)) {
+    // if it's not already in the closure
     if (closure.count(otherState->id_) == 0) {
+      // add its epsilon closure to the set
       epsilonClosure(otherState, closure);
     }
   }
