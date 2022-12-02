@@ -1,6 +1,7 @@
 #include "LanguageRulesParser/LanguageRulesParser.h"
 
 #include <iostream>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -8,7 +9,7 @@
 #include <vector>
 
 namespace {
-std::unordered_set<char> regexCharacters{'*', '|', '+', '.', '(', ')'};
+std::unordered_set<char> regexCharacters{'*', '|', '+', '(', ')'};
 };
 
 bool LanguageRulesParser::shouldConcatenate(
@@ -21,24 +22,27 @@ bool LanguageRulesParser::shouldConcatenate(
 
   switch (token.type) {
     case TokenType::CHAR_GROUP:
-    case TokenType::RES_CHAR:
+    case TokenType::CHAR:
     case TokenType::RIGHT_P:
     case TokenType::ASTERIK:
-    case TokenType::DOT:
     case TokenType::PLUS:
+    case TokenType::EPSILON:
       return true;
     default:
       return false;
   }
 }
 
-void LanguageRulesParser::parseDef(const std::string& identifier,
-                                   std::string_view line, int idx) {
+std::vector<Token> LanguageRulesParser::parseDef(std::string_view line,
+                                                 int idx) {
   int len = line.size();
   std::vector<Token> tokens;
 
   while (idx < len) {
-    if (regexCharacters.count(line[idx])) {
+    if (std::isspace(line[idx])) {
+      idx++;
+      continue;
+    } else if (regexCharacters.count(line[idx])) {  // If special character
       // TODO: Look for cleaner implementation
       if (line[idx] == '(' && shouldConcatenate(tokens)) {
         tokens.emplace_back(TokenType::CONCAT);
@@ -57,9 +61,6 @@ void LanguageRulesParser::parseDef(const std::string& identifier,
         case '+':
           tokens.emplace_back(TokenType::PLUS);
           break;
-        case '.':
-          tokens.emplace_back(TokenType::DOT);
-          break;
         case '|':
           tokens.emplace_back(TokenType::OR);
           break;
@@ -68,7 +69,7 @@ void LanguageRulesParser::parseDef(const std::string& identifier,
       }
 
       idx++;
-    } else if (line[idx] == '[') {
+    } else if (line[idx] == '[') {  // If character group
       if (idx + 4 < len && std::isalnum(line[idx + 1]) &&
           line[idx + 2] == '-' && std::isalnum(line[idx + 3]) &&
           line[idx + 4] == ']' && line[idx + 1] <= line[idx + 3]) {
@@ -84,49 +85,60 @@ void LanguageRulesParser::parseDef(const std::string& identifier,
       } else {
         throw std::runtime_error("Invalid character group");
       }
-    } else if (std::isalnum(line[idx])) {
+    } else if (std::isalnum(line[idx])) {  // If regex definition
       std::string regexDef;
       while (idx < len && std::isalnum(line[idx])) {
         regexDef.push_back(line[idx++]);
       }
 
-      // if the symbol has not been defined before throw an error
-      if (regexDefinitions.count(regexDef) == 0) {
-        throw std::runtime_error("Symbol \"" + regexDef +
-                                 "\" has not been defined before");
+      // if the symbol has not been defined, it means this is a normal text
+      if (regexDefinitions_.count(regexDef) == 0) {
+        for (char c : regexDef) {
+          if (shouldConcatenate(tokens)) {
+            tokens.emplace_back(TokenType::CONCAT);
+          }
+          tokens.emplace_back(TokenType::CHAR, c);
+        }
+      } else {
+
+        const auto& regexDefTokens = regexDefinitions_[regexDef];
+
+        // TODO: Look for cleaner implementation
+        if (shouldConcatenate(tokens)) {
+          tokens.emplace_back(TokenType::CONCAT);
+        }
+
+        tokens.emplace_back(TokenType::LEFT_P);
+        tokens.insert(tokens.end(), regexDefTokens.begin(),
+                      regexDefTokens.end());
+        tokens.emplace_back(TokenType::RIGHT_P);
       }
-
-      const auto& regexDefTokens = regexDefinitions[regexDef];
-
-      // TODO: Look for cleaner implementation
-      if (shouldConcatenate(tokens)) {
-        tokens.emplace_back(TokenType::CONCAT);
-      }
-
-      tokens.emplace_back(TokenType::LEFT_P);
-      tokens.insert(tokens.end(), regexDefTokens.begin(), regexDefTokens.end());
-      tokens.emplace_back(TokenType::RIGHT_P);
-    } else if (line[idx] == '\\') {
+    } else if (line[idx] == '\\') {  // if reserved character
       if (idx + 1 < len) {
         // TODO: Look for cleaner implementation
         if (shouldConcatenate(tokens)) {
           tokens.emplace_back(TokenType::CONCAT);
         }
 
-        tokens.emplace_back(TokenType::RES_CHAR, line[idx + 1]);
+        if (line[idx + 1] == 'L') {
+          tokens.emplace_back(TokenType::EPSILON);
+        } else {
+          tokens.emplace_back(TokenType::CHAR, line[idx + 1]);
+        }
         idx += 2;
       } else {
         throw std::runtime_error("Expected character after backslash");
       }
-    }
-
-    else {
-      throw std::runtime_error("Unexpected character " +
-                               std::string(1, line[idx]));
+    } else {  // punctuation character
+      if (shouldConcatenate(tokens)) {
+        tokens.emplace_back(TokenType::CONCAT);
+      }
+      tokens.emplace_back(TokenType::CHAR, line[idx]);
+      idx++;
     }
   }
 
-  regexDefinitions[identifier] = std::move(tokens);
+  return tokens;
 }
 
 void LanguageRulesParser::parseDefOrExp(std::string_view line) {
@@ -140,10 +152,41 @@ void LanguageRulesParser::parseDefOrExp(std::string_view line) {
     throw std::runtime_error("Expected a definition or an expression");
   }
 
-  if (line[idx] == '=') {
-    parseDef(identifier, line, idx + 1);
+  // TODO: Change name
+  auto tokens = parseDef(line, idx + 1);
+
+  if (line[idx] == ':') {
+    regexExpressions_[identifier] = std::move(tokens);
   } else {
-    throw std::runtime_error("Not Implemented");
+    regexDefinitions_[identifier] = std::move(tokens);
+  }
+}
+
+void LanguageRulesParser::parseKeywords(std::string_view line) {
+  std::stringstream ss{std::string{line}};
+  std::string keyword;
+
+  while (std::getline(ss, keyword, ' ')) {
+    if (keyword.length() > 0) {
+      keywords_.emplace_back(keyword);
+    }
+  }
+}
+
+void LanguageRulesParser::parsePunctuation(std::string_view line) {
+  std::stringstream ss{std::string{line}};
+  std::string punctuation;
+
+  while (std::getline(ss, punctuation, ' ')) {
+    if (punctuation.empty()) {
+      continue;
+    } else if (punctuation.length() == 1) {
+      punctuationCharacters_.emplace_back(punctuation[0]);
+    } else if (punctuation.length() == 2 && punctuation[0] == '\\') {
+      punctuationCharacters_.emplace_back(punctuation[1]);
+    } else {
+      throw std::runtime_error("Invalid punctuation");
+    }
   }
 }
 
@@ -151,9 +194,17 @@ void LanguageRulesParser::parseLine(std::string_view line) {
   if (std::isalpha(line[0])) {
     parseDefOrExp(line);
   } else if (line[0] == '[') {
-    throw std::runtime_error("Not Implemented");
+    if (line.back() != ']') {
+      throw std::runtime_error("Invalid punctuation characters line");
+    }
+    // Parse line without [] characters
+    parsePunctuation(line.substr(1, line.length() - 2));
   } else if (line[0] == '{') {
-    throw std::runtime_error("Not Implemented");
+    if (line.back() != '}') {
+      throw std::runtime_error("Invalid keywords line");
+    }
+    // Parse line without {} characters
+    parseKeywords(line.substr(1, line.length() - 2));
   }
 }
 
@@ -175,8 +226,8 @@ void LanguageRulesParser::printToken(const Token& token) const {
       std::cout << "CONCAT";
       break;
     }
-    case TokenType::DOT: {
-      std::cout << "DOT";
+    case TokenType::EPSILON: {
+      std::cout << "EPSILON";
       break;
     }
     case TokenType::LEFT_P: {
@@ -192,7 +243,7 @@ void LanguageRulesParser::printToken(const Token& token) const {
       std::cout << '[' << begin << '-' << end << ']';
       break;
     }
-    case TokenType::RES_CHAR: {
+    case TokenType::CHAR: {
       char c = std::get<char>(token.data);
       std::cout << '\\' << c;
       break;
@@ -214,7 +265,7 @@ void LanguageRulesParser::printTokensVector(
 }
 
 void LanguageRulesParser::show() const {
-  for (const auto& [identifier, tokens] : regexDefinitions) {
+  for (const auto& [identifier, tokens] : regexDefinitions_) {
     std::cout << "Identifier: " << identifier << std::endl << "Tokens: ";
     printTokensVector(tokens);
   }
@@ -247,8 +298,8 @@ std::vector<Token> LanguageRulesParser::infixToPostfix(
   std::vector<Token> postfix;
 
   for (const auto& token : tokens) {
-    if (token.type == TokenType::CHAR_GROUP ||
-        token.type == TokenType::RES_CHAR || token.type == TokenType::DOT) {
+    if (token.type == TokenType::CHAR_GROUP || token.type == TokenType::CHAR ||
+        token.type == TokenType::EPSILON) {
       postfix.emplace_back(token);
     } else if (token.type == TokenType::LEFT_P) {
       s.push(token);

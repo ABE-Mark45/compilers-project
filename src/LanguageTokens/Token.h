@@ -7,12 +7,12 @@ enum TokenType {
   ASTERIK,
   LEFT_P,
   RIGHT_P,
-  DOT,
   CONCAT,
   OR,
-  ID,
+  KEYWORD,
   CHAR_GROUP,
-  RES_CHAR
+  CHAR,
+  EPSILON
 };
 
 struct Token {

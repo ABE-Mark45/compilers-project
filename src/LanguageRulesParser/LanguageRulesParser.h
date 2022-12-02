@@ -17,17 +17,16 @@ class LanguageRulesParser {
   void printToken(const Token& token) const;
   void printTokensVector(const std::vector<Token>& tokens) const;
 
-  // gets a const reference to the regex definitions
-  const std::unordered_map<std::string, std::vector<Token>>&
-  getRegexDefinitions() {
-    return regexDefinitions;
-  }
+  // getters
+  const auto& getRegexExpressions() { return regexExpressions_; }
+  const auto& getKeywords() { return keywords_; }
+  const auto& getPunctuationCharacters() { return punctuationCharacters_; }
 
   std::vector<Token> infixToPostfix(const std::vector<Token>& tokens) const;
 
  private:
   // Parse a definition line on the form <identifier>=<regex>
-  void parseDef(const std::string& identifier, std::string_view line, int idx);
+  std::vector<Token> parseDef(std::string_view line, int idx);
 
   // A helper function to control whether to parse a regex definition or expression
   void parseDefOrExp(std::string_view line);
@@ -38,5 +37,11 @@ class LanguageRulesParser {
   int tokenPrecedence(const TokenType type) const;
   bool compareTokensByType(const Token& a, const Token& b) const;
 
-  std::unordered_map<std::string, std::vector<Token>> regexDefinitions;
+  void parseKeywords(std::string_view line);
+  void parsePunctuation(std::string_view line);
+
+  std::unordered_map<std::string, std::vector<Token>> regexDefinitions_;
+  std::unordered_map<std::string, std::vector<Token>> regexExpressions_;
+  std::vector<std::string> keywords_;
+  std::vector<char> punctuationCharacters_;
 };
