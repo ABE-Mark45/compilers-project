@@ -157,6 +157,8 @@ void LanguageRulesParser::parseDefOrExp(std::string_view line) {
 
   if (line[idx] == ':') {
     regexExpressions_[identifier] = std::move(tokens);
+    postfixRegexExpressions_[identifier] = infixToPostfix(tokens);
+    priorities_[identifier] = priorities_.size();
   } else {
     regexDefinitions_[identifier] = std::move(tokens);
   }
@@ -169,6 +171,7 @@ void LanguageRulesParser::parseKeywords(std::string_view line) {
   while (std::getline(ss, keyword, ' ')) {
     if (keyword.length() > 0) {
       keywords_.emplace_back(keyword);
+      priorities_[keyword] = priorities_.size();
     }
   }
 }
@@ -182,8 +185,10 @@ void LanguageRulesParser::parsePunctuation(std::string_view line) {
       continue;
     } else if (punctuation.length() == 1) {
       punctuationCharacters_.emplace_back(punctuation[0]);
+      priorities_[std::string(1, punctuation[0])] = priorities_.size();
     } else if (punctuation.length() == 2 && punctuation[0] == '\\') {
       punctuationCharacters_.emplace_back(punctuation[1]);
+      priorities_[std::string(1, punctuation[1])] = priorities_.size();
     } else {
       throw std::runtime_error("Invalid punctuation");
     }

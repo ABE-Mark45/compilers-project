@@ -1,4 +1,5 @@
 #include <NFA/NFA.h>
+#include <stack>
 
 NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
     : startState_(startState), endState_(endState) {}
@@ -41,6 +42,18 @@ NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
   auto endState = std::make_shared<State>(
       State::AcceptValue{priority, std::string(1, punctuationCharacter)});
   startState->addTransition(punctuationCharacter, endState);
+
+  auto nfa = std::make_unique<NFA>(startState, endState);
+  return nfa;
+}
+
+/*static*/ std::unique_ptr<NFA> NFA::constructCharacterNFA(const Token& token) {
+  auto startState = std::make_shared<State>();
+  auto endState = std::make_shared<State>();
+
+  char character = std::get<char>(token.data);
+
+  startState->addTransition(character, endState);
 
   auto nfa = std::make_unique<NFA>(startState, endState);
   return nfa;
@@ -90,4 +103,63 @@ void NFA::positiveKleeneStar() {
 
   startState_ = std::move(newStartState);
   endState_ = std::move(newEndState);
+}
+
+/*static*/ std::unique_ptr<NFA> NFA::constructRegexExpressionNFA(
+    const std::string& identifier, int priority,
+    const std::vector<Token>& tokens) {
+  std::stack<std::unique_ptr<NFA>> nfaStack;
+
+  for (const auto& token : tokens) {
+    switch (token.type) {
+      case CHAR_GROUP: {
+        auto nfa = constructCharacterGroupNFA(token);
+        nfaStack.push(nfa);
+        break;
+      }
+      case CHAR: {
+        auto nfa = constructCharacterNFA(token);
+        nfaStack.push(nfa);
+        break;
+      }
+      case OR: {
+        auto secondNFA = std::move(nfaStack.top());
+        nfaStack.pop();
+        auto firstNFA = std::move(nfaStack.top());
+        nfaStack.pop();
+        firstNFA->unite(std::move(secondNFA));
+        nfaStack.push(firstNFA);
+        break;
+      }
+      case CONCAT: {
+        auto secondNFA = std::move(nfaStack.top());
+        nfaStack.pop();
+        auto firstNFA = std::move(nfaStack.top());
+        nfaStack.pop();
+        firstNFA->concatenate(std::move(secondNFA));
+        nfaStack.push(firstNFA);
+        break;
+      }
+      case PLUS: {
+        nfaStack.top()->positiveKleeneStar();
+        break;
+      }
+      case ASTERIK: {
+        nfaStack.top()->kleeneStar();
+        break;
+      }
+      default: {
+        throw std::runtime_error("Unsupported token");
+      }
+    }
+  }
+
+  if (nfaStack.size() != 1) {
+    throw std::runtime_error("Stack should only contain one NFA");
+  }
+  auto combinedNFA = std::move(nfaStack.top());
+  nfaStack.pop();
+  combinedNFA->endState_->setAcceptValue({priority, identifier});
+
+  return combinedNFA;
 }

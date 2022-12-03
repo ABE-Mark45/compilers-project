@@ -24,9 +24,15 @@ class NFA {
   // Construct an NFA from a keyword
   static std::unique_ptr<NFA> constructKeywordNFA(const std::string& keyword,
                                                   int priority);
+
+  static std::unique_ptr<NFA> constructRegexExpressionNFA(
+      const std::string& identifier, int priority,
+      const std::vector<Token>& tokens);
   // Construct an NFA from a punctuation character
   static std::unique_ptr<NFA> constructPunctuationCharacterNFA(
       char punctuationCharacter, int priority);
+  // Construct an NFA from a single character
+  static std::unique_ptr<NFA> constructCharacterNFA(const Token& token);
 
   // consume another NFA by concatenating it (i.e. (aa)(bb) -> (aabb))
   void concatenate(std::shared_ptr<NFA> otherNFA);

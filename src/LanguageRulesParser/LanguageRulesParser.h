@@ -19,10 +19,15 @@ class LanguageRulesParser {
 
   // getters
   const auto& getRegexExpressions() { return regexExpressions_; }
+  const auto& getPostfixRegexExpressions() { return postfixRegexExpressions_; }
   const auto& getKeywords() { return keywords_; }
   const auto& getPunctuationCharacters() { return punctuationCharacters_; }
+  const auto& getPriorities() { return priorities_; }
 
   std::vector<Token> infixToPostfix(const std::vector<Token>& tokens) const;
+
+  std::unordered_map<std::string, std::vector<Token>>
+  getPosfixRegexExpressions() const;
 
  private:
   // Parse a definition line on the form <identifier>=<regex>
@@ -42,6 +47,7 @@ class LanguageRulesParser {
 
   std::unordered_map<std::string, std::vector<Token>> regexDefinitions_;
   std::unordered_map<std::string, std::vector<Token>> regexExpressions_;
+  std::unordered_map<std::string, std::vector<Token>> postfixRegexExpressions_;
   std::unordered_map<std::string, int> priorities_;
   std::vector<std::string> keywords_;
   std::vector<char> punctuationCharacters_;
