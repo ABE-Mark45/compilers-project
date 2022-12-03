@@ -11,17 +11,21 @@
 class State {
  public:
   explicit State(std::optional<std::string> acceptValue = std::nullopt)
-      : acceptValue_(acceptValue) {}
+      : id_(sStatesCount++), acceptValue_(acceptValue) {}
+
+  void setAcceptValue(const std::string& acceptValue) {
+    acceptValue_ = acceptValue;
+  }
 
   static std::unique_ptr<State> createState(
       std::optional<std::string> acceptValue = std::nullopt);
 
   // Computes epsilon closure of the current state given the mapping between each state ID and its internal data
-  std::set<int> epsilonClosure() const;
+  std::set<std::shared_ptr<const State>> epsilonClosure() const;
 
   // Computes epsilon closure of the current state after moving through
   // the specified transition given the mapping between each state ID and its internal data
-  std::set<int> moveThrough(char transition) const;
+  std::set<std::shared_ptr<const State>> moveThrough(char transition) const;
 
   // Adds a transition through character to state
   void addTransition(char transition, std::shared_ptr<const State> otherState);
@@ -32,7 +36,7 @@ class State {
  private:
   // A utility function for the epsilon closure
   void epsilonClosure(std::shared_ptr<const State> state,
-                      std::set<int>& closure) const;
+                      std::set<std::shared_ptr<const State>>& closure) const;
 
   // State ID
   int id_;
@@ -41,4 +45,6 @@ class State {
       transitions_;
   // State accept value
   std::optional<std::string> acceptValue_;
+  // id generator
+  static inline int sStatesCount{0};
 };
