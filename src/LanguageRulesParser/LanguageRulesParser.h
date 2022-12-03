@@ -26,9 +26,6 @@ class LanguageRulesParser {
 
   std::vector<Token> infixToPostfix(const std::vector<Token>& tokens) const;
 
-  std::unordered_map<std::string, std::vector<Token>>
-  getPosfixRegexExpressions() const;
-
  private:
   // Parse a definition line on the form <identifier>=<regex>
   std::vector<Token> parseDef(std::string_view line, int idx);

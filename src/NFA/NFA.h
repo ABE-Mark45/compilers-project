@@ -11,12 +11,12 @@ class NFA {
   explicit NFA(std::shared_ptr<State> startState = nullptr,
                std::shared_ptr<State> endState = nullptr);
 
-  std::shared_ptr<const State> getStartState() { return startState_; }
+  std::shared_ptr<const State> getStartState() const { return startState_; }
   void setStartState(std::shared_ptr<State> startState) {
     startState_ = startState;
   }
 
-  std::shared_ptr<const State> getEndState() { return endState_; }
+  std::shared_ptr<const State> getEndState() const { return endState_; }
   void setEndState(std::shared_ptr<State> endState) { endState_ = endState; }
   // Construct and NFA from a character group token
   // (i.e. [A-Z] creates NFA that has two states with transitions going from A to Z between them)

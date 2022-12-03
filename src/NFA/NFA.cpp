@@ -6,21 +6,23 @@ NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
 
 /*static*/ std::unique_ptr<NFA> NFA::constructCharacterGroupNFA(
     const Token& token) {
-  auto nfa = std::make_unique<NFA>();
+  auto startState = std::make_shared<State>();
+  auto endState = std::make_shared<State>();
 
   auto [beginCharacter, endCharacter] =
       std::get<std::pair<char, char>>(token.data);
 
   for (char c = beginCharacter; c <= endCharacter; c++) {
-    nfa->startState_->addTransition(c, nfa->endState_);
+    startState->addTransition(c, endState);
   }
 
+  auto nfa = std::make_unique<NFA>(startState, endState);
   return nfa;
 }
 
 /*static*/ std::unique_ptr<NFA> NFA::constructKeywordNFA(
     const std::string& keyword, int priority) {
-  auto startState = std::shared_ptr<State>();
+  auto startState = std::make_shared<State>();
   auto currentState = startState;
 
   for (char c : keyword) {
@@ -114,12 +116,12 @@ void NFA::positiveKleeneStar() {
     switch (token.type) {
       case CHAR_GROUP: {
         auto nfa = constructCharacterGroupNFA(token);
-        nfaStack.push(nfa);
+        nfaStack.push(std::move(nfa));
         break;
       }
       case CHAR: {
         auto nfa = constructCharacterNFA(token);
-        nfaStack.push(nfa);
+        nfaStack.push(std::move(nfa));
         break;
       }
       case OR: {
@@ -128,7 +130,7 @@ void NFA::positiveKleeneStar() {
         auto firstNFA = std::move(nfaStack.top());
         nfaStack.pop();
         firstNFA->unite(std::move(secondNFA));
-        nfaStack.push(firstNFA);
+        nfaStack.push(std::move(firstNFA));
         break;
       }
       case CONCAT: {
@@ -137,7 +139,7 @@ void NFA::positiveKleeneStar() {
         auto firstNFA = std::move(nfaStack.top());
         nfaStack.pop();
         firstNFA->concatenate(std::move(secondNFA));
-        nfaStack.push(firstNFA);
+        nfaStack.push(std::move(firstNFA));
         break;
       }
       case PLUS: {

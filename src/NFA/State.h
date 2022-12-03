@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-class State {
+class State : public std::enable_shared_from_this<State> {
  public:
   struct AcceptValue {
     int priority;
@@ -36,12 +36,11 @@ class State {
   explicit State(std::optional<AcceptValue> acceptValue = std::nullopt)
       : id_(sStatesCount++), acceptValue_(acceptValue) {}
 
+  std::optional<AcceptValue> getAcceptValue() const { return acceptValue_; }
+
   void setAcceptValue(const AcceptValue& acceptValue) {
     acceptValue_ = acceptValue;
   }
-
-  static std::unique_ptr<State> createState(
-      std::optional<std::string> acceptValue = std::nullopt);
 
   // Computes epsilon closure of the current state given the mapping between each state ID and its internal data
   std::pair<std::set<std::shared_ptr<const State>>, std::optional<AcceptValue>>

@@ -130,7 +130,7 @@ TEST(LanguageRulesParserTest, JavaExample) {
       Token(TokenType::ASTERIK)};
 
   const std::vector<Token> trueRelop{
-      Token(TokenType::CHAR, '='),  Token(TokenType::CONCAT),
+      Token(TokenType::CHAR, '='), Token(TokenType::CONCAT),
       Token(TokenType::CHAR, '='), Token(TokenType::OR),
       Token(TokenType::CHAR, '!'), Token(TokenType::CONCAT),
       Token(TokenType::CHAR, '='), Token(TokenType::OR),
@@ -196,4 +196,6 @@ TEST(LanguageRulesParserTest, JavaExample) {
   ASSERT_EQ(regexExpressions["mulop"], trueMulop);
   ASSERT_EQ(puctuationCharacters, truePunctuationCharacters);
   ASSERT_EQ(keywords, trueKeywords);
+
+  p.printTokensVector(p.getPostfixRegexExpressions().at("num"));
 }

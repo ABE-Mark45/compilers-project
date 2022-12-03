@@ -156,8 +156,8 @@ void LanguageRulesParser::parseDefOrExp(std::string_view line) {
   auto tokens = parseDef(line, idx + 1);
 
   if (line[idx] == ':') {
-    regexExpressions_[identifier] = std::move(tokens);
     postfixRegexExpressions_[identifier] = infixToPostfix(tokens);
+    regexExpressions_[identifier] = std::move(tokens);
     priorities_[identifier] = priorities_.size();
   } else {
     regexDefinitions_[identifier] = std::move(tokens);

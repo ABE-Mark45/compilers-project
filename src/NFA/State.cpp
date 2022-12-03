@@ -4,18 +4,13 @@ namespace {
 constexpr auto kEpsilonTransition = '\0';
 }
 
-/*static*/ std::unique_ptr<State> createState(
-    std::optional<std::string> acceptValue) {
-  return std::make_unique<State>(acceptValue);
-}
-
 std::pair<std::set<std::shared_ptr<const State>>,
           std::optional<State::AcceptValue>>
 State::epsilonClosure() const {
   std::set<std::shared_ptr<const State>> closure;
   AcceptValue acceptValue;
 
-  epsilonClosure(std::make_shared<const State>(this), closure, acceptValue);
+  epsilonClosure(shared_from_this(), closure, acceptValue);
 
   if (acceptValue.priority == INT32_MAX) {
     return {closure, std::nullopt};
