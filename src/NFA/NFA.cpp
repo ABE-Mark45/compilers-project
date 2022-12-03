@@ -1,8 +1,7 @@
 #include <NFA/NFA.h>
 
-NFA::NFA(std::optional<std::string> acceptValue)
-    : startState_(std::make_shared<State>()),
-      endState_(std::make_shared<State>(acceptValue)) {}
+NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
+    : startState_(startState), endState_(endState) {}
 
 /*static*/ std::unique_ptr<NFA> NFA::constructCharacterGroupNFA(
     const Token& token) {
@@ -19,27 +18,31 @@ NFA::NFA(std::optional<std::string> acceptValue)
 }
 
 /*static*/ std::unique_ptr<NFA> NFA::constructKeywordNFA(
-    const std::string& keyword) {
-  auto nfa = std::make_unique<NFA>();
-  auto prev = nfa->startState_;
+    const std::string& keyword, int priority) {
+  auto startState = std::shared_ptr<State>();
+  auto currentState = startState;
 
   for (char c : keyword) {
     auto newState = std::make_shared<State>();
-    prev->addTransition(c, newState);
-    prev = newState;
+    currentState->addTransition(c, newState);
+    currentState = newState;
   }
 
-  prev->setAcceptValue(keyword);
+  currentState->setAcceptValue({priority, keyword});
 
-  nfa->endState_ = prev;
+  auto nfa = std::make_unique<NFA>(startState, currentState);
 
   return nfa;
 }
 
 /*static*/ std::unique_ptr<NFA> NFA::constructPunctuationCharacterNFA(
-    char punctuationCharacter) {
-  auto nfa = std::make_unique<NFA>(std::string(1, punctuationCharacter));
-  nfa->startState_->addTransition(punctuationCharacter, nfa->endState_);
+    char punctuationCharacter, int priority) {
+  auto startState = std::make_shared<State>();
+  auto endState = std::make_shared<State>(
+      State::AcceptValue{priority, std::string(1, punctuationCharacter)});
+  startState->addTransition(punctuationCharacter, endState);
+
+  auto nfa = std::make_unique<NFA>(startState, endState);
   return nfa;
 }
 

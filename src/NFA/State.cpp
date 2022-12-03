@@ -9,35 +9,46 @@ constexpr auto kEpsilonTransition = '\0';
   return std::make_unique<State>(acceptValue);
 }
 
-std::set<std::shared_ptr<const State>> State::epsilonClosure() const {
+std::pair<std::set<std::shared_ptr<const State>>,
+          std::optional<State::AcceptValue>>
+State::epsilonClosure() const {
   std::set<std::shared_ptr<const State>> closure;
+  AcceptValue acceptValue;
 
-  epsilonClosure(std::make_shared<const State>(this), closure);
-  return closure;
+  epsilonClosure(std::make_shared<const State>(this), closure, acceptValue);
+
+  if (acceptValue.priority == -1) {
+    return {closure, std::nullopt};
+  }
+  return {closure, acceptValue};
 }
 
-std::set<std::shared_ptr<const State>> State::moveThrough(
-    char transition) const {
+std::pair<std::set<std::shared_ptr<const State>>,
+          std::optional<State::AcceptValue>>
+State::moveThrough(char transition) const {
   std::set<std::shared_ptr<const State>> closure;
 
   if (transitions_.count(transition) == 0) {
-    return closure;
+    return {closure, std::nullopt};
   }
 
+  AcceptValue acceptValue;
   for (const auto otherState : transitions_.at(transition)) {
     if (closure.count(otherState) == 0) {
-      epsilonClosure(otherState, closure);
+      epsilonClosure(otherState, closure, acceptValue);
     }
   }
-
-  return closure;
+  if (acceptValue.priority == -1) {
+    return {closure, std::nullopt};
+  }
+  return {closure, acceptValue};
 }
 
-void State::epsilonClosure(
+/*static*/ void State::epsilonClosure(
     std::shared_ptr<const State> state,
-    std::set<std::shared_ptr<const State>>& closure) const {
+    std::set<std::shared_ptr<const State>>& closure, AcceptValue& acceptValue) {
   closure.insert(state);
-
+  acceptValue.reduceMax(state->acceptValue_);
   // if no epsilon transitions from s, end the algorithm
   if (state->transitions_.count(kEpsilonTransition) == 0) {
     return;
@@ -48,7 +59,7 @@ void State::epsilonClosure(
     // if it's not already in the closure
     if (closure.count(otherState) == 0) {
       // add its epsilon closure to the set
-      epsilonClosure(otherState, closure);
+      epsilonClosure(otherState, closure, acceptValue);
     }
   }
 }

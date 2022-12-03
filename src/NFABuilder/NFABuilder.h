@@ -30,4 +30,5 @@ class NFABuilder {
   const std::unordered_map<std::string, std::vector<Token>> regexExpressions_;
   const std::vector<std::string> keywords_;
   const std::vector<char> punctuationCharacters_;
+  std::shared_ptr<State> combinedStartState_;
 };

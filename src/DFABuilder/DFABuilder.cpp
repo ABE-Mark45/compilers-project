@@ -2,16 +2,23 @@
 
 namespace {
 using ClosureType = std::set<std::shared_ptr<const State>>;
+using VisitRetunType =
+    std::pair<ClosureType, std::optional<State::AcceptValue>>;
 // A utility function to generate all the possible states which can be reached from the current closure
-ClosureType getNewClosure(ClosureType& closure, char transition) {
+VisitRetunType getNewClosure(ClosureType& closure, char transition) {
   ClosureType newClosure;
+  State::AcceptValue combinedAcceptValue;
   // for each state in the new closure, get the reacheable states and add them to the combined closure
   for (auto state : closure) {
-    auto movedToStates = state->moveThrough(transition);
+    auto [movedToStates, acceptValue] = state->moveThrough(transition);
+    combinedAcceptValue.reduceMax(acceptValue);
     newClosure.insert(movedToStates.begin(), movedToStates.end());
   }
+  if (combinedAcceptValue.priority == -1) {
+    return {newClosure, std::nullopt};
+  }
   // return the new closure
-  return newClosure;
+  return {newClosure, combinedAcceptValue};
 }
 }  // namespace
 
@@ -23,14 +30,15 @@ std::shared_ptr<const State> buildDFA(std::unique_ptr<NFA> nfa) {
   // For each closure generated from the NFA, a corresponding state is created in the DFA
   std::map<ClosureType, std::shared_ptr<State>> closureToDFAStatesMapping;
   // Closure of the start state of the NFA
-  auto startClosure = startState->epsilonClosure();
+  auto [startClosure, initialAcceptValue] = startState->epsilonClosure();
 
   // Queue for the closures to be processed later as part of the BFS algorithm
   std::queue<ClosureType> closures;
   // Push the start closure to be processed
   closures.push(startClosure);
   // create the initial state of the DFA
-  closureToDFAStatesMapping[startClosure] = std::make_shared<State>();
+  closureToDFAStatesMapping[startClosure] =
+      std::make_shared<State>(initialAcceptValue);
 
   while (!closures.empty()) {
     // Get the closure to be processed
@@ -42,7 +50,7 @@ std::shared_ptr<const State> buildDFA(std::unique_ptr<NFA> nfa) {
     // For each printable character
     for (char c = 1; c <= 127; c++) {
       // Get all the states and their epsilon closures which can be visted from the current states in the closure
-      auto newClosure = getNewClosure(closure, c);
+      auto [newClosure, newAcceptValue] = getNewClosure(closure, c);
       // If this yields no states, continue
       if (newClosure.empty()) {
         continue;
@@ -51,7 +59,8 @@ std::shared_ptr<const State> buildDFA(std::unique_ptr<NFA> nfa) {
       // If this is the first time to encounter this closure, create a new state corresponding to it
       // and add it to the queue of closures to be processed
       if (closureToDFAStatesMapping.count(newClosure) == 0) {
-        closureToDFAStatesMapping[newClosure] = std::make_shared<State>();
+        closureToDFAStatesMapping[newClosure] =
+            std::make_shared<State>(newAcceptValue);
         closures.push(newClosure);
       }
 
