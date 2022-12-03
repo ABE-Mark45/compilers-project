@@ -17,7 +17,7 @@ State::epsilonClosure() const {
 
   epsilonClosure(std::make_shared<const State>(this), closure, acceptValue);
 
-  if (acceptValue.priority == -1) {
+  if (acceptValue.priority == INT32_MAX) {
     return {closure, std::nullopt};
   }
   return {closure, acceptValue};
@@ -38,7 +38,7 @@ State::moveThrough(char transition) const {
       epsilonClosure(otherState, closure, acceptValue);
     }
   }
-  if (acceptValue.priority == -1) {
+  if (acceptValue.priority == INT32_MAX) {
     return {closure, std::nullopt};
   }
   return {closure, acceptValue};
@@ -48,7 +48,7 @@ State::moveThrough(char transition) const {
     std::shared_ptr<const State> state,
     std::set<std::shared_ptr<const State>>& closure, AcceptValue& acceptValue) {
   closure.insert(state);
-  acceptValue.reduceMax(state->acceptValue_);
+  acceptValue.reduceMin(state->acceptValue_);
   // if no epsilon transitions from s, end the algorithm
   if (state->transitions_.count(kEpsilonTransition) == 0) {
     return;

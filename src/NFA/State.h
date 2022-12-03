@@ -19,14 +19,14 @@ class State {
     AcceptValue(const AcceptValue& other)
         : priority(other.priority), value(other.value) {}
 
-    AcceptValue() : priority(-1) {}
+    AcceptValue() : priority(INT32_MAX) {}
 
     bool operator<(const AcceptValue& other) const {
       return priority < other.priority;
     };
 
-    void reduceMax(std::optional<AcceptValue> other) {
-      if (other && other->priority > priority) {
+    void reduceMin(std::optional<AcceptValue> other) {
+      if (other && other->priority < priority) {
         priority = other->priority;
         value = other->value;
       }

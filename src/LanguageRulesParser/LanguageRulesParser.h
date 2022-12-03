@@ -42,6 +42,7 @@ class LanguageRulesParser {
 
   std::unordered_map<std::string, std::vector<Token>> regexDefinitions_;
   std::unordered_map<std::string, std::vector<Token>> regexExpressions_;
+  std::unordered_map<std::string, int> priorities_;
   std::vector<std::string> keywords_;
   std::vector<char> punctuationCharacters_;
 };

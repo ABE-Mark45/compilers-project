@@ -11,10 +11,10 @@ VisitRetunType getNewClosure(ClosureType& closure, char transition) {
   // for each state in the new closure, get the reacheable states and add them to the combined closure
   for (auto state : closure) {
     auto [movedToStates, acceptValue] = state->moveThrough(transition);
-    combinedAcceptValue.reduceMax(acceptValue);
+    combinedAcceptValue.reduceMin(acceptValue);
     newClosure.insert(movedToStates.begin(), movedToStates.end());
   }
-  if (combinedAcceptValue.priority == -1) {
+  if (combinedAcceptValue.priority == INT32_MAX) {
     return {newClosure, std::nullopt};
   }
   // return the new closure
