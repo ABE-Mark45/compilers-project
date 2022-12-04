@@ -8,4 +8,5 @@ NFA
 NFABuilder
 DFA
 DFABuilder
-Simulator)
+Simulator
+Readers)

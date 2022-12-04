@@ -3,32 +3,22 @@
 #include "DFABuilder/DFABuilder.h"
 #include "LanguageRulesParser/LanguageRulesParser.h"
 #include "NFABuilder/NFABuilder.h"
+#include "Readers/LanguageRulesReader.h"
+#include "Readers/ProgramReader.h"
 #include "Simulator/Simulator.h"
 
 TEST(DFAExampleTest, test) {
-  const std::vector<std::string> languageRules{
-      "letter= [a-z] | [A-Z]",
-      "digit= [0-9]",
-      "id: letter (letter | digit)*",
-      "digits= digit+",
-      "{boolean int  float }",
-      "num: digit+ | digit+ . digits ( \\L | E digits)",
-      "relop: \\=\\= | !\\= | > | >\\= | < | <\\=",
-      "assign: \\=",
-      "{if else while}",
-      "[; ,  \\( \\) { }]",
-      "addop: \\+ | \\-",
-      "mulop: \\* | \\/"};
+  const std::filesystem::path rulesFilePath{
+      "/mnt/d/Projects/compilers-project/resources/rules.txt"};
+  LanguageRulesReader rulesReader(rulesFilePath);
 
-  const std::string testProgram =
-      "int sum, count, pass, mnt;\n"
-      "while ( pass != 10) {\n"
-      "\tpass = pass + 1;\n"
-      "}\n";
+  const std::filesystem::path programFilePath{
+      "/mnt/d/Projects/compilers-project/resources/program.txt"};
+  ProgramReader programReader(programFilePath);
 
   LanguageRulesParser parser;
-  for (const auto& rule : languageRules) {
-    parser.parseLine(rule);
+  while (auto rule = rulesReader.getLine()) {
+    parser.parseLine(rule.value());
   }
 
   nfa::NFABuilder nfaBuilder(
@@ -41,7 +31,7 @@ TEST(DFAExampleTest, test) {
 
   Simulator s(dfaStartState);
 
-  for (char c : testProgram) {
-    s.consumeCharacter(c);
+  while (programReader.hasChar()) {
+    s.consumeCharacter(programReader.getChar());
   }
 }
