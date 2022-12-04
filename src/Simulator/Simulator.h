@@ -15,4 +15,6 @@ class Simulator {
   std::shared_ptr<const dfa::State> startState_;
   std::shared_ptr<const dfa::State> currentState_;
   std::ostream& o_;
+  std::unique_ptr<DFA::State> last_accepting_state;
+  std::vector<char> buffer;
 };

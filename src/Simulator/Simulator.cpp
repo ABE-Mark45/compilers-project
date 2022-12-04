@@ -13,6 +13,9 @@ void Simulator::consumeCharacter(char character) {
   auto nextState = currentState_->moveThrough(character);
   if (nextState) {
     currentState_ = nextState;
+    if(currentState_->getAcceptValue()) {
+      last_accepting_state = currentState_;
+    }
     return;
   } else if (currentState_->getAcceptValue()) {
     o_ << currentState_->getAcceptValue().value().value << '\n';

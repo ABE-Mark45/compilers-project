@@ -40,7 +40,7 @@ auto main(int argc, char** argv) -> int {
 
   auto nfa = nfaBuilder.getCombinedNFA();
 
-  auto dfaStartState = DFABuilder::buildDFA(std::move(nfa));
+  auto dfaStartState =  ::buildDFA(std::move(nfa));
 
   Simulator s(dfaStartState, tokensOutputFile);
 
