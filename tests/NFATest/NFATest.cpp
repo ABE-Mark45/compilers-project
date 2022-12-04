@@ -2,6 +2,9 @@
 #include <iostream>
 #include "LanguageTokens/Token.h"
 #include "NFA/NFA.h"
+#include "utils/AcceptValue.h"
+
+using namespace nfa;
 
 TEST(NFATest, constructCharacterGroupNFA) {
   Token token{TokenType::CHAR_GROUP, std::make_pair('a', 'z')};
@@ -76,7 +79,7 @@ TEST(NFATest, constructKeywordNFA) {
   auto startState = nfa->getStartState();
   auto endState = nfa->getEndState();
   auto currentState = startState;
-  std::optional<State::AcceptValue> finalAcceptValue;
+  std::optional<AcceptValue> finalAcceptValue;
 
   for (char c : testString) {
     const auto& [closure, acceptValue] = currentState->moveThrough(c);

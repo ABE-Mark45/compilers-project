@@ -1,6 +1,7 @@
 #include <NFA/NFA.h>
 #include <stack>
 
+namespace nfa {
 NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
     : startState_(startState), endState_(endState) {}
 
@@ -42,7 +43,7 @@ NFA::NFA(std::shared_ptr<State> startState, std::shared_ptr<State> endState)
     char punctuationCharacter, int priority) {
   auto startState = std::make_shared<State>();
   auto endState = std::make_shared<State>(
-      State::AcceptValue{priority, std::string(1, punctuationCharacter)});
+      AcceptValue{priority, std::string(1, punctuationCharacter)});
   startState->addTransition(punctuationCharacter, endState);
 
   auto nfa = std::make_unique<NFA>(startState, endState);
@@ -119,6 +120,7 @@ void NFA::positiveKleeneStar() {
         nfaStack.push(std::move(nfa));
         break;
       }
+      case EPSILON:
       case CHAR: {
         auto nfa = constructCharacterNFA(token);
         nfaStack.push(std::move(nfa));
@@ -164,4 +166,6 @@ void NFA::positiveKleeneStar() {
   combinedNFA->endState_->setAcceptValue({priority, identifier});
 
   return combinedNFA;
+}
+
 }

@@ -4,8 +4,8 @@ namespace {
 constexpr auto kEpsilonTransition = '\0';
 }
 
-std::pair<std::set<std::shared_ptr<const State>>,
-          std::optional<State::AcceptValue>>
+namespace nfa {
+std::pair<std::set<std::shared_ptr<const State>>, std::optional<AcceptValue>>
 State::epsilonClosure() const {
   std::set<std::shared_ptr<const State>> closure;
   AcceptValue acceptValue;
@@ -18,8 +18,7 @@ State::epsilonClosure() const {
   return {closure, acceptValue};
 }
 
-std::pair<std::set<std::shared_ptr<const State>>,
-          std::optional<State::AcceptValue>>
+std::pair<std::set<std::shared_ptr<const State>>, std::optional<AcceptValue>>
 State::moveThrough(char transition) const {
   std::set<std::shared_ptr<const State>> closure;
 
@@ -67,3 +66,5 @@ void State::addTransition(char transition,
 void State::addEpsilonTransition(std::shared_ptr<const State> otherState) {
   addTransition(kEpsilonTransition, otherState);
 }
+
+}  // namespace nfa

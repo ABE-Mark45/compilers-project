@@ -1,6 +1,5 @@
 set(DFA_SOURCES
     State.cpp
-    DFA.cpp
 )
 
 add_library(DFA STATIC ${DFA_SOURCES})

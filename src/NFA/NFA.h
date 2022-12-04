@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 
+namespace nfa {
 // A class to represent Non deterministic finite automata. Each NFA contains a single start state and a single end state.
 class NFA {
  public:
@@ -52,3 +53,5 @@ class NFA {
   std::shared_ptr<State> startState_{nullptr};
   std::shared_ptr<State> endState_{nullptr};
 };
+
+}

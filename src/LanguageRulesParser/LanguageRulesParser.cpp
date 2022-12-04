@@ -121,7 +121,7 @@ std::vector<Token> LanguageRulesParser::parseDef(std::string_view line,
         }
 
         if (line[idx + 1] == 'L') {
-          tokens.emplace_back(TokenType::EPSILON);
+          tokens.emplace_back(TokenType::EPSILON, 0);
         } else {
           tokens.emplace_back(TokenType::CHAR, line[idx + 1]);
         }
@@ -158,7 +158,7 @@ void LanguageRulesParser::parseDefOrExp(std::string_view line) {
   if (line[idx] == ':') {
     postfixRegexExpressions_[identifier] = infixToPostfix(tokens);
     regexExpressions_[identifier] = std::move(tokens);
-    priorities_[identifier] = priorities_.size();
+    priorities_[identifier] = priorities_.size() + 2;
   } else {
     regexDefinitions_[identifier] = std::move(tokens);
   }
@@ -171,7 +171,7 @@ void LanguageRulesParser::parseKeywords(std::string_view line) {
   while (std::getline(ss, keyword, ' ')) {
     if (keyword.length() > 0) {
       keywords_.emplace_back(keyword);
-      priorities_[keyword] = priorities_.size();
+      priorities_[keyword] = 0;
     }
   }
 }
@@ -185,10 +185,10 @@ void LanguageRulesParser::parsePunctuation(std::string_view line) {
       continue;
     } else if (punctuation.length() == 1) {
       punctuationCharacters_.emplace_back(punctuation[0]);
-      priorities_[std::string(1, punctuation[0])] = priorities_.size();
+      priorities_[std::string(1, punctuation[0])] = 1;
     } else if (punctuation.length() == 2 && punctuation[0] == '\\') {
       punctuationCharacters_.emplace_back(punctuation[1]);
-      priorities_[std::string(1, punctuation[1])] = priorities_.size();
+      priorities_[std::string(1, punctuation[1])] = 1;
     } else {
       throw std::runtime_error("Invalid punctuation");
     }
