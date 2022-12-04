@@ -1,10 +1,10 @@
 #include <Simulator/Simulator.h>
-#include <iostream>
 #include <optional>
 #include <string>
 
-Simulator::Simulator(std::shared_ptr<const dfa::State> startState)
-    : startState_(startState), currentState_(startState) {}
+Simulator::Simulator(std::shared_ptr<const dfa::State> startState,
+                     std::ostream& o)
+    : startState_(startState), currentState_(startState), o_(o) {}
 
 void Simulator::consumeCharacter(char character) {
   if (std::isspace(character) && currentState_ == startState_) {
@@ -15,7 +15,7 @@ void Simulator::consumeCharacter(char character) {
     currentState_ = nextState;
     return;
   } else if (currentState_->getAcceptValue()) {
-    std::cout << currentState_->getAcceptValue().value().value << std::endl;
+    o_ << currentState_->getAcceptValue().value().value << '\n';
     currentState_ = startState_;
     consumeCharacter(character);
   } else {

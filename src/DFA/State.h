@@ -16,6 +16,8 @@ class State {
 
   std::optional<AcceptValue> getAcceptValue() const { return acceptValue_; }
 
+  int getId() const { return id_; }
+
   void setAcceptValue(const AcceptValue& acceptValue) {
     acceptValue_ = acceptValue;
   }
