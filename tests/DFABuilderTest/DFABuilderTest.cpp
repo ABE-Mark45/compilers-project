@@ -1,31 +1,37 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <sstream>
 #include <DFABuilder/DFABuilder.h>
 #include "LanguageTokens/Token.h"
 #include "NFA/NFA.h"
 #include "NFABuilder/NFABuilder.h"
 #include "DFABuilder/DFABuilder.h"
 #include "LanguageRulesParser/LanguageRulesParser.h"
+#include "Simulator/Simulator.h"
 
 TEST(DFABuilderTest, test1) {
-  std::string line = "letter= [a-z] | [A-Z]";
-  std::string digit = "digit=[0-9] [A-X]";
-  std::string identifier = "id: letter ( letter | digit+ \\L [3-5] )*";
+  LanguageRulesParser parser;
+  // while (auto rule = rulesReader.getLine()) {
+  //   parser.parseLine(rule.value());
+  // }
+  parser.parseLine("{if el ifelse}");
 
-  LanguageRulesParser p;
-  p.parseLine(line);
-  p.parseLine(digit);
-  p.parseLine(identifier);
+  nfa::NFABuilder nfaBuilder(
+      parser.getPostfixRegexExpressions(), parser.getKeywords(),
+      parser.getPunctuationCharacters(), parser.getPriorities());
 
-  // auto nfaBuilder = NFABuilder(
-  //   p.getPostfixRegexExpressions(),
-  //   p.getKeywords(),
-  //   p.getPunctuationCharacters(),
-  //   p.getPriorities(),
-  // ).getCombinedNFA();
+  auto nfa = nfaBuilder.getCombinedNFA();
 
-  // auto nfa = nfaBuilder.getCombinedNFA();
-  // DFABuilder dfaBuilder = DFABuilder();
-  // dfaBuilder.buildDFA(std::move(nfa));
+  auto dfaStartState =  DFABuilder::buildDFA(std::move(nfa));
 
+  std::stringstream output;
+  Simulator s(dfaStartState, output);
+
+  std::string program = "ifel";
+  for(char c: program)
+    s.consumeCharacter(c);
+
+  s.finishSimulation();
+
+  ASSERT_EQ(output.str(), "if\nel\n");
 }

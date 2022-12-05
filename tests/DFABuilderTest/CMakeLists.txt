@@ -5,4 +5,8 @@ PUBLIC
 GTest::GTest
 NFA
 DFA
-)
+DFABuilder
+LanguageRulesParser
+NFABuilder
+Readers
+Simulator)

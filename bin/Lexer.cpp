@@ -40,13 +40,15 @@ auto main(int argc, char** argv) -> int {
 
   auto nfa = nfaBuilder.getCombinedNFA();
 
-  auto dfaStartState =  ::buildDFA(std::move(nfa));
+  auto dfaStartState =  DFABuilder::buildDFA(std::move(nfa));
 
   Simulator s(dfaStartState, tokensOutputFile);
 
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
   }
+  
+  s.finishSimulation();
 
   printDFA(dfaStartState, tableOutputFile);
   return 0;
