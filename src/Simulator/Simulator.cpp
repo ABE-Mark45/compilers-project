@@ -36,7 +36,7 @@ void Simulator::flushLastAcceptingState() {
       consumeCharacter(c);
     }
   } else if(!buffer.empty()){
-     throw std::runtime_error("No matched prefix for the buffer " + std::string(newInput.begin(), newInput.end()));
+     throw std::runtime_error("No matched prefix for " + std::string(buffer.begin(), buffer.end()));
   }
 }
 
@@ -47,6 +47,6 @@ void Simulator::finishSimulation() {
 
   // are there characters that couldn't be analyzed?
   if(!buffer.empty()) {
-    throw std::runtime_error("No matched prefix for the buffer " + std::string(buffer.begin(), buffer.end()));
+    throw std::runtime_error("No matched prefix for " + std::string(buffer.begin(), buffer.end()));
   }
 }
