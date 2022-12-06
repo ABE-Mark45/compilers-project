@@ -9,11 +9,11 @@ using namespace std;
 
 namespace {
 using ClosureType = std::set<std::shared_ptr<const nfa::State>>;
-using VisitRetunType = std::pair<ClosureType, std::optional<AcceptValue>>;
+using VisitReturnType = std::pair<ClosureType, std::optional<AcceptValue>>;
 using MembershipTableType =
     std::unordered_map<std::shared_ptr<const dfa::State>, int>;
 // A utility function to generate all the possible states which can be reached from the current closure
-VisitRetunType getNewClosure(ClosureType& closure, char transition) {
+VisitReturnType getNewClosure(ClosureType& closure, char transition) {
   ClosureType newClosure;
   AcceptValue combinedAcceptValue;
   // for each state in the new closure, get the reacheable states and add them to the combined closure
