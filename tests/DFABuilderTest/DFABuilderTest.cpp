@@ -16,6 +16,8 @@ TEST(DFABuilderTest, testMinimization1) {
   // sorry there is no asserts atm.
   // verify the output for now.
 
+  // https://www.youtube.com/watch?v=0XaGAkY09Wc&ab_channel=NesoAcademy has the test example
+
   shared_ptr<dfa::State> A = std::make_shared<dfa::State>();
   shared_ptr<dfa::State> B = std::make_shared<dfa::State>();
   shared_ptr<dfa::State> C = std::make_shared<dfa::State>();
@@ -44,6 +46,7 @@ size: 4
 }
 
 TEST(DFABuilderTest, testMinimization2) {
+  // https://www.youtube.com/watch?v=ex9sPLq5CRg&ab_channel=NesoAcademy has the test example
   shared_ptr<dfa::State> Q0 = std::make_shared<dfa::State>();
   shared_ptr<dfa::State> Q1 = std::make_shared<dfa::State>();
   shared_ptr<dfa::State> Q2 = std::make_shared<dfa::State>(AcceptValue(1, "done"));

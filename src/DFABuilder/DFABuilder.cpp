@@ -79,6 +79,16 @@ std::shared_ptr<const dfa::State> buildDFA(std::unique_ptr<nfa::NFA> nfa) {
   return closureToDFAStatesMapping[startClosure];
 }
 
+void print(auto& oldEqv) {
+    cout << oldEqv.size() << "\n";
+    for(auto& set: oldEqv) {
+      cout <<"(";
+      for(auto& state: set) {
+        cout << state->getId() << ",";
+      }
+      cout << ") - ";
+    } cout << "\n";
+}
   
 std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> startingState){
 
@@ -86,8 +96,6 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
   
   vector<set<shared_ptr<const dfa::State>>> newEqv = getAcceptingAndRejectingStates(startingState);
   vector<set<shared_ptr<const dfa::State>>> oldEqv;
-
-
 
   auto findStateIndex = [](shared_ptr<const dfa::State> state, vector<set<shared_ptr<const dfa::State>>>& eqv){
     
@@ -105,6 +113,11 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
     if(findStateIndex(a, eqv) != findStateIndex(b, eqv))
       return false;
 
+    if(a->getAcceptValue().has_value() && b->getAcceptValue().has_value()){
+      if(a->getAcceptValue().value().value != b->getAcceptValue().value().value)
+        return false;
+    }
+
     for (unsigned char c = 1; c <= 127; c++) {
       auto nextStateA = a->moveThrough(c);
       auto nextStateB = b->moveThrough(c);
@@ -120,16 +133,11 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
     oldEqv = newEqv; // TODO: use move
     newEqv.clear();
     
-    // cout << oldEqv.size() << "\n";
-    // for(auto& set: oldEqv) {
-    //   cout <<"(";
-    //   for(auto& state: set) {
-    //     cout << state->getId() << ",";
-    //   }
-    //   cout << ") - ";
-    // } cout << "\n";
+    // print(oldEqv);
 
     for(auto& set: oldEqv) {
+      // print(oldEqv);
+      // cout << "setrep: " << (*set.begin())->getId() <<"\n";
       // make a new set for the first element that reperesnts it
       shared_ptr<const dfa::State> setRep = *set.begin();
       
@@ -138,31 +146,41 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
       std::vector<std::set<shared_ptr<const dfa::State>>> newSets;
       newSets.push_back(newSet);
       for(auto state: set) {
-
+        // cout << "state: "<<  state->getId() << ": ";
         // assume the state to in its own set until proven otherwise
         bool isNewRep = true;
         for(auto& newSet: newSets) {
           shared_ptr<const dfa::State> newSetRep = *newSet.begin();
-           
+          // cout << newSetRep->getId() <<" ";
+          if(newSetRep->getId() == state->getId()) {
+            isNewRep = false;
+            break;
+          }
+
           if(is_equivalent(state, newSetRep, oldEqv)) {
             newSet.insert(state);
             isNewRep = false;
             break;
           }
-        }
+        } 
+        // cout << "\n";
         if(isNewRep) {
           std::set<shared_ptr<const dfa::State>> newSet{state};
           newSets.push_back(newSet);
         }
-      }
+      } 
+  
       newEqv.insert(newEqv.end(), newSets.begin(), newSets.end());
-
+      // cout <<" seg\n";
     }
-  } while(newEqv != oldEqv);
+    // // cout <<"check\n";
+    
+  } while(newEqv.size() != oldEqv.size());
 
   vector<shared_ptr<dfa::State>> resultStates;
   shared_ptr<dfa::State> resultStartingState;
   // construct all states (without transitions)
+  // cout << "construct states\n";
   for(auto& set: newEqv) {
     shared_ptr<dfa::State> repState = make_shared<dfa::State>();
     if( (*set.begin())->getAcceptValue().has_value()){
@@ -174,9 +192,11 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
       resultStartingState = repState;
     }
   }
+  // cout << "construct transitions\n";
 
   // construct transitions
   for(int i=0; i<resultStates.size(); i++) {
+    // cout << i << endl;
     auto resultState = resultStates[i];
     auto repState = *newEqv[i].begin();
     for (unsigned char c = 1; c <= 127; c++) {
@@ -186,16 +206,17 @@ std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> 
       if(ind != -1)
         resultState->addTransition(c, resultStates[ind]); 
     }
-    cout << resultState.get()->getId() <<" -> " << 
-      resultState->moveThrough(1).get()->getId() << "," << resultState->moveThrough(2).get()->getId() << std::endl;
+    // cout << resultState.get()->getId() <<" -> " << 
+    //   resultState->moveThrough(1).get()->getId() << "," << resultState->moveThrough(2).get()->getId() << std::endl;
   }
   
-  std::cout << "size: " << resultStates.size() << std::endl; 
+  // std::cout << "size: " << resultStates.size() << std::endl; 
   return resultStartingState;
 }
 
 
 vector<set<shared_ptr<const dfa::State>>> getAcceptingAndRejectingStates(std::shared_ptr<const dfa::State> startingState) {
+  
   set<shared_ptr<const dfa::State>> acceptingStates, rejectingStates;
   std::unordered_set<int> visited;
   queue<shared_ptr<const dfa::State>> q;
@@ -227,8 +248,15 @@ vector<set<shared_ptr<const dfa::State>>> getAcceptingAndRejectingStates(std::sh
     } 
 
   }
-  
-  return vector<set<shared_ptr<const dfa::State>>>{acceptingStates, rejectingStates};
+
+  vector<set<shared_ptr<const dfa::State>>> stateSets;
+  stateSets.push_back(rejectingStates);
+  stateSets.push_back(acceptingStates);
+  // for(auto state: acceptingStates) {
+  //   stateSets.emplace_back(set<shared_ptr<const dfa::State>>{state});
+  // }
+
+  return stateSets;
 }
 
 }
