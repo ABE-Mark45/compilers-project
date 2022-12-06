@@ -20,6 +20,8 @@ class State {
 
   void setId(int id) { id_ = id; }
 
+  const auto& getTransitions() const { return transitions_; }
+
   void setAcceptValue(const AcceptValue& acceptValue) {
     acceptValue_ = acceptValue;
   }

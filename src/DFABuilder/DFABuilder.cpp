@@ -54,9 +54,8 @@ std::pair<MembershipTableType, int> getAcceptingAndRejectingStates(
       membership[currentState] = acceptValueToIndex.at(val);
     }
 
-    for (unsigned char c = 1; c <= 127; c++) {
-      auto nextState = currentState->moveThrough(c);
-      if (nextState && visited.count(nextState) == 0) {
+    for (const auto& [transition, nextState] : currentState->getTransitions()) {
+      if (visited.count(nextState) == 0) {
         visited.insert(nextState);
         q.push(nextState);
       }
@@ -105,12 +104,10 @@ auto getReachableStates = [](std::shared_ptr<const dfa::State> startState) {
     auto state = q.front();
     q.pop();
 
-    for (int i = 1; i <= 127; i++) {
-      if (auto nextState = state->moveThrough(i)) {
-        if (reachable.count(nextState) == 0) {
-          reachable.insert(nextState);
-          q.push(nextState);
-        }
+    for (const auto& [transition, nextState] : state->getTransitions()) {
+      if (reachable.count(nextState) == 0) {
+        reachable.insert(nextState);
+        q.push(nextState);
       }
     }
   }
@@ -233,11 +230,9 @@ std::shared_ptr<const dfa::State> minimizeDFA(
     // cout << i << endl;
     auto resultState = resultStates[i];
     auto repState = *groups[i].begin();
-    for (unsigned char c = 1; c <= 127; c++) {
-      if (auto nextState = repState->moveThrough(c)) {
-        int nextStateMembership = newGroupMembership.at(nextState);
-        resultState->addTransition(c, resultStates[nextStateMembership]);
-      }
+    for (const auto& [transition, nextState] : repState->getTransitions()) {
+      int nextStateMembership = newGroupMembership.at(nextState);
+      resultState->addTransition(transition, resultStates[nextStateMembership]);
     }
   }
 
