@@ -2,7 +2,11 @@
 
 LanguageRulesReader::LanguageRulesReader(
     const std::filesystem::path& rulesFilePath)
-    : inputFile_(rulesFilePath) {}
+    : inputFile_(rulesFilePath) {
+  if (!inputFile_.is_open()) {
+    throw std::runtime_error("could not open file " + rulesFilePath.string());
+  }
+}
 
 std::optional<std::string> LanguageRulesReader::getLine() {
   std::string str;

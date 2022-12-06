@@ -2,6 +2,9 @@
 
 ProgramReader::ProgramReader(const std::filesystem::path& programPath)
     : inputFile_(programPath), currentIdx(0), finishedReading_(false) {
+  if (!inputFile_.is_open()) {
+    throw std::runtime_error("could not open file " + programPath.string());
+  }
   std::getline(inputFile_, currentLine_);
   currentLine_.push_back('\n');
 }

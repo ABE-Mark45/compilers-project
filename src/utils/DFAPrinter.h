@@ -5,6 +5,22 @@
 #include <string>
 #include <unordered_set>
 
+static const std::string kSep = ",";
+
+static std::string escapeString(std::string_view str) {
+  std::string ret = "\"";
+  for (char c : str) {
+    if (c == '\"') {
+      ret += "\"\"";
+    } else {
+      ret.push_back(c);
+    }
+  }
+
+  ret.push_back('\"');
+  return ret;
+}
+
 static void printDFA(
     std::shared_ptr<const dfa::State> state, std::ostream& o,
     std::unordered_set<std::shared_ptr<const dfa::State>>& visited) {
@@ -12,24 +28,23 @@ static void printDFA(
   std::string str{std::to_string(state->getId())};
 
   if (state->getAcceptValue()) {
-    str += "," + state->getAcceptValue().value().value + ",";
+    str += kSep + escapeString(state->getAcceptValue().value().value);
   } else {
-    str += ",_,";
+    str += kSep + "_";
   }
 
-  for (unsigned char c = 1; c <= 127; c++) {
+  for (unsigned char c = 33; c <= 126; c++) {
+    str += kSep;
     if (auto nextState = state->moveThrough(c)) {
       str += std::to_string(nextState->getId());
     } else {
-      str += "-1";
+      str += "_";
     }
-    str.push_back(',');
   }
 
-  str.pop_back();
   o << str << '\n';
 
-  for (unsigned char c = 1; c <= 127; c++) {
+  for (unsigned char c = 33; c <= 126; c++) {
     if (auto nextState = state->moveThrough(c)) {
       if (visited.count(nextState) == 0) {
         printDFA(nextState, o, visited);
@@ -41,9 +56,9 @@ static void printDFA(
 void printDFA(std::shared_ptr<const dfa::State> state, std::ostream& o) {
   std::unordered_set<std::shared_ptr<const dfa::State>> visited;
 
-  o << '_';
-  for (int i = 1; i <= 127; i++) {
-    o << ',' << std::to_string(i);
+  o << '_' << kSep << '_';
+  for (char i = 33; i <= 126; i++) {
+    o << kSep << escapeString(std::string(1, i));
   }
   o << '\n';
   printDFA(state, o, visited);
