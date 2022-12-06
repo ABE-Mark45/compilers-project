@@ -29,20 +29,30 @@ VisitRetunType getNewClosure(ClosureType& closure, char transition) {
   return {newClosure, combinedAcceptValue};
 }
 
-MembershipTableType getAcceptingAndRejectingStates(
+std::pair<MembershipTableType, int> getAcceptingAndRejectingStates(
     std::shared_ptr<const dfa::State> startState) {
 
   set<shared_ptr<const dfa::State>> acceptingStates, rejectingStates;
   std::unordered_set<shared_ptr<const dfa::State>> visited{startState};
   queue<shared_ptr<const dfa::State>> q;
   MembershipTableType membership;
+  unordered_map<string, int> acceptValueToIndex;
 
   q.push(startState);
   while (!q.empty()) {
     auto currentState = q.front();
     q.pop();
 
-    membership[currentState] = currentState->getAcceptValue() != std::nullopt;
+    auto currentAcceptValue = currentState->getAcceptValue();
+    if (currentAcceptValue == std::nullopt) {
+      membership[currentState] = 0;
+    } else {
+      string val = currentAcceptValue.value().value;
+      if (acceptValueToIndex.count(val) == 0) {
+        acceptValueToIndex[val] = acceptValueToIndex.size() + 1;
+      }
+      membership[currentState] = acceptValueToIndex.at(val);
+    }
 
     for (unsigned char c = 1; c <= 127; c++) {
       auto nextState = currentState->moveThrough(c);
@@ -53,7 +63,7 @@ MembershipTableType getAcceptingAndRejectingStates(
     }
   }
 
-  return membership;
+  return {membership, acceptValueToIndex.size() + 1};
 }
 
 auto isStatesGroupEquivalent =
@@ -77,7 +87,8 @@ auto isStatesGroupEquivalent =
           continue;
         } else if (nextStateA == nullptr || nextStateB == nullptr) {
           return false;
-        } else if (oldMembershipTable.at(a) != oldMembershipTable.at(b))
+        } else if (oldMembershipTable.at(nextStateA) !=
+                   oldMembershipTable.at(nextStateB))
           return false;
       }
       return true;
@@ -164,11 +175,10 @@ std::shared_ptr<const dfa::State> minimizeDFA(
     std::shared_ptr<const dfa::State> startState) {
   // construct an initial set of accepting and rejecting states
 
-  MembershipTableType newGroupMembership =
+  auto [newGroupMembership, newGroupsCount] =
       getAcceptingAndRejectingStates(startState);
   MembershipTableType oldGroupMembership;
 
-  int newGroupsCount = 2;
   int oldGroupsCount;
   std::vector<unordered_set<shared_ptr<const dfa::State>>> groups;
 
