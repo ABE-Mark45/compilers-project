@@ -18,6 +18,8 @@ class State {
 
   int getId() const { return id_; }
 
+  void setId(int id) { id_ = id; }
+
   void setAcceptValue(const AcceptValue& acceptValue) {
     acceptValue_ = acceptValue;
   }
@@ -27,6 +29,8 @@ class State {
 
   // Adds a transition through character to state
   void addTransition(char transition, std::shared_ptr<const State> otherState);
+
+  static void resetStatesCount() { sStatesCount = 0; }
 
  private:
   int id_;

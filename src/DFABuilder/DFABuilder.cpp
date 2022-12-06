@@ -1,14 +1,17 @@
 #include <DFABuilder/DFABuilder.h>
 #include <NFA/State.h>
 #include <utils/AcceptValue.h>
-#include <queue>
+#include <algorithm>
 #include <iostream>
+#include <queue>
 
 using namespace std;
 
 namespace {
 using ClosureType = std::set<std::shared_ptr<const nfa::State>>;
 using VisitRetunType = std::pair<ClosureType, std::optional<AcceptValue>>;
+using MembershipTableType =
+    std::unordered_map<std::shared_ptr<const dfa::State>, int>;
 // A utility function to generate all the possible states which can be reached from the current closure
 VisitRetunType getNewClosure(ClosureType& closure, char transition) {
   ClosureType newClosure;
@@ -25,6 +28,84 @@ VisitRetunType getNewClosure(ClosureType& closure, char transition) {
   // return the new closure
   return {newClosure, combinedAcceptValue};
 }
+
+MembershipTableType getAcceptingAndRejectingStates(
+    std::shared_ptr<const dfa::State> startState) {
+
+  set<shared_ptr<const dfa::State>> acceptingStates, rejectingStates;
+  std::unordered_set<shared_ptr<const dfa::State>> visited{startState};
+  queue<shared_ptr<const dfa::State>> q;
+  MembershipTableType membership;
+
+  q.push(startState);
+  while (!q.empty()) {
+    auto currentState = q.front();
+    q.pop();
+
+    membership[currentState] = currentState->getAcceptValue() != std::nullopt;
+
+    for (unsigned char c = 1; c <= 127; c++) {
+      auto nextState = currentState->moveThrough(c);
+      if (nextState && visited.count(nextState) == 0) {
+        visited.insert(nextState);
+        q.push(nextState);
+      }
+    }
+  }
+
+  return membership;
+}
+
+auto isStatesGroupEquivalent =
+    [](shared_ptr<const dfa::State> a, shared_ptr<const dfa::State> b,
+       const MembershipTableType& oldMembershipTable) {
+      auto acceptValueA = a->getAcceptValue();
+      auto acceptValueB = b->getAcceptValue();
+      if ((acceptValueA.has_value() && !acceptValueB.has_value()) ||
+          (!acceptValueA.has_value() && acceptValueB.has_value()) ||
+          (acceptValueA.has_value() && acceptValueB.has_value() &&
+           acceptValueA.value().value != acceptValueB.value().value)) {
+        return false;
+      }
+
+      for (unsigned char c = 1; c <= 127; c++) {
+        auto nextStateA = a->moveThrough(c);
+        auto nextStateB = b->moveThrough(c);
+        // check if they are in the same set
+
+        if (nextStateA == nullptr && nextStateB == nullptr) {
+          continue;
+        } else if (nextStateA == nullptr || nextStateB == nullptr) {
+          return false;
+        } else if (oldMembershipTable.at(a) != oldMembershipTable.at(b))
+          return false;
+      }
+      return true;
+    };
+
+auto getReachableStates = [](std::shared_ptr<const dfa::State> startState) {
+  std::unordered_set<std::shared_ptr<const dfa::State>> reachable;
+  queue<std::shared_ptr<const dfa::State>> q;
+
+  reachable.insert(startState);
+  q.push(startState);
+
+  while (!q.empty()) {
+    auto state = q.front();
+    q.pop();
+
+    for (int i = 1; i <= 127; i++) {
+      if (auto nextState = state->moveThrough(i)) {
+        if (reachable.count(nextState) == 0) {
+          reachable.insert(nextState);
+          q.push(nextState);
+        }
+      }
+    }
+  }
+  return reachable;
+};
+
 }  // namespace
 
 namespace DFABuilder {
@@ -79,184 +160,87 @@ std::shared_ptr<const dfa::State> buildDFA(std::unique_ptr<nfa::NFA> nfa) {
   return closureToDFAStatesMapping[startClosure];
 }
 
-void print(auto& oldEqv) {
-    cout << oldEqv.size() << "\n";
-    for(auto& set: oldEqv) {
-      cout <<"(";
-      for(auto& state: set) {
-        cout << state->getId() << ",";
-      }
-      cout << ") - ";
-    } cout << "\n";
-}
-  
-std::shared_ptr<const dfa::State> minimizeDFA(std::shared_ptr<const dfa::State> startingState){
-
+std::shared_ptr<const dfa::State> minimizeDFA(
+    std::shared_ptr<const dfa::State> startState) {
   // construct an initial set of accepting and rejecting states
-  
-  vector<set<shared_ptr<const dfa::State>>> newEqv = getAcceptingAndRejectingStates(startingState);
-  vector<set<shared_ptr<const dfa::State>>> oldEqv;
 
-  auto findStateIndex = [](shared_ptr<const dfa::State> state, vector<set<shared_ptr<const dfa::State>>>& eqv){
-    
-    for(int j=0; j<eqv.size(); j++){
-        auto& set = eqv[j];
-        if(set.count(state)) {
-          return j;
-        }
-    }
-    return -1;
-  };
+  MembershipTableType newGroupMembership =
+      getAcceptingAndRejectingStates(startState);
+  MembershipTableType oldGroupMembership;
 
-  auto is_equivalent = [&](shared_ptr<const dfa::State> a,  shared_ptr<const dfa::State> b, vector<set<shared_ptr<const dfa::State>>>& eqv){  
-
-    if(findStateIndex(a, eqv) != findStateIndex(b, eqv))
-      return false;
-
-    if(a->getAcceptValue().has_value() && b->getAcceptValue().has_value()){
-      if(a->getAcceptValue().value().value != b->getAcceptValue().value().value)
-        return false;
-    }
-
-    for (unsigned char c = 1; c <= 127; c++) {
-      auto nextStateA = a->moveThrough(c);
-      auto nextStateB = b->moveThrough(c);
-      // check if they are in the same set
-
-      if(findStateIndex(nextStateA, eqv) != findStateIndex(nextStateB, eqv))
-        return false;
-    }
-    return true; 
-  };
+  int newGroupsCount = 2;
+  int oldGroupsCount;
+  std::vector<unordered_set<shared_ptr<const dfa::State>>> groups;
 
   do {
-    oldEqv = newEqv; // TODO: use move
-    newEqv.clear();
-    
-    // print(oldEqv);
+    oldGroupMembership.swap(newGroupMembership);
+    oldGroupsCount = newGroupsCount;
 
-    for(auto& set: oldEqv) {
-      // print(oldEqv);
-      // cout << "setrep: " << (*set.begin())->getId() <<"\n";
-      // make a new set for the first element that reperesnts it
-      shared_ptr<const dfa::State> setRep = *set.begin();
-      
-      std::set<shared_ptr<const dfa::State>> newSet({setRep}); 
-      // add the set to the represntative sets
-      std::vector<std::set<shared_ptr<const dfa::State>>> newSets;
-      newSets.push_back(newSet);
-      for(auto state: set) {
-        // cout << "state: "<<  state->getId() << ": ";
-        // assume the state to in its own set until proven otherwise
-        bool isNewRep = true;
-        for(auto& newSet: newSets) {
-          shared_ptr<const dfa::State> newSetRep = *newSet.begin();
-          // cout << newSetRep->getId() <<" ";
-          if(newSetRep->getId() == state->getId()) {
-            isNewRep = false;
-            break;
-          }
+    newGroupMembership.clear();
+    groups.clear();
 
-          if(is_equivalent(state, newSetRep, oldEqv)) {
-            newSet.insert(state);
-            isNewRep = false;
-            break;
-          }
-        } 
-        // cout << "\n";
-        if(isNewRep) {
-          std::set<shared_ptr<const dfa::State>> newSet{state};
-          newSets.push_back(newSet);
+    for (const auto [currentState, currentMembership] : oldGroupMembership) {
+      bool isCurrentStateAddedToGroup = false;
+
+      for (int groupIdx = 0; groupIdx < groups.size(); groupIdx++) {
+        auto& group = groups[groupIdx];
+        const auto groupState = *group.begin();
+
+        if (isStatesGroupEquivalent(currentState, groupState,
+                                    oldGroupMembership)) {
+          isCurrentStateAddedToGroup = true;
+          group.insert(currentState);
+          newGroupMembership[currentState] = groupIdx;
+          break;
         }
-      } 
-  
-      newEqv.insert(newEqv.end(), newSets.begin(), newSets.end());
-      // cout <<" seg\n";
+      }
+
+      if (!isCurrentStateAddedToGroup) {
+        groups.push_back({currentState});
+        newGroupMembership[currentState] = groups.size() - 1;
+      }
     }
-    // // cout <<"check\n";
-    
-  } while(newEqv.size() != oldEqv.size());
+
+    newGroupsCount = groups.size();
+  } while (oldGroupsCount != newGroupsCount);
 
   vector<shared_ptr<dfa::State>> resultStates;
   shared_ptr<dfa::State> resultStartingState;
-  // construct all states (without transitions)
-  // cout << "construct states\n";
-  for(auto& set: newEqv) {
-    shared_ptr<dfa::State> repState = make_shared<dfa::State>();
-    if( (*set.begin())->getAcceptValue().has_value()){
-      repState->setAcceptValue((*set.begin())->getAcceptValue().value());
-    }
-    resultStates.push_back(repState);
 
-    if(set.count(startingState) == 1) {
+  dfa::State::resetStatesCount();
+  for (const auto& group : groups) {
+    auto groupAcceptValue = (*group.begin())->getAcceptValue();
+    auto repState = make_shared<dfa::State>(groupAcceptValue);
+    resultStates.emplace_back(repState);
+
+    if (group.count(startState) == 1) {
       resultStartingState = repState;
     }
   }
-  // cout << "construct transitions\n";
 
   // construct transitions
-  for(int i=0; i<resultStates.size(); i++) {
+  for (int i = 0; i < resultStates.size(); i++) {
     // cout << i << endl;
     auto resultState = resultStates[i];
-    auto repState = *newEqv[i].begin();
+    auto repState = *groups[i].begin();
     for (unsigned char c = 1; c <= 127; c++) {
-      auto nextState = repState->moveThrough(c);
-      // find next state
-      int ind = findStateIndex(nextState, oldEqv);
-      if(ind != -1)
-        resultState->addTransition(c, resultStates[ind]); 
+      if (auto nextState = repState->moveThrough(c)) {
+        int nextStateMembership = newGroupMembership.at(nextState);
+        resultState->addTransition(c, resultStates[nextStateMembership]);
+      }
     }
-    // cout << resultState.get()->getId() <<" -> " << 
-    //   resultState->moveThrough(1).get()->getId() << "," << resultState->moveThrough(2).get()->getId() << std::endl;
   }
-  
-  // std::cout << "size: " << resultStates.size() << std::endl; 
+
+  auto reachableStates = getReachableStates(resultStartingState);
+
+  std::for_each(resultStates.begin(), resultStates.end(),
+                [&reachableStates, idx = 0](auto& state) mutable -> void {
+                  if (reachableStates.count(state)) {
+                    state->setId(idx++);
+                  }
+                });
+
   return resultStartingState;
 }
 
-
-vector<set<shared_ptr<const dfa::State>>> getAcceptingAndRejectingStates(std::shared_ptr<const dfa::State> startingState) {
-  
-  set<shared_ptr<const dfa::State>> acceptingStates, rejectingStates;
-  std::unordered_set<int> visited;
-  queue<shared_ptr<const dfa::State>> q;
-  q.push(startingState);
-  
-  while(!q.empty()) {
-    auto state = q.front();
-    q.pop();
-    
-    if(visited.count(state->getId()) != 0) {
-      // visited before
-      continue;;
-    }
-    visited.insert(state->getId());
-    
-    if (state->getAcceptValue()) {
-      acceptingStates.insert(state);
-    } else {
-      rejectingStates.insert(state);
-    }
-
-    for (unsigned char c = 1; c <= 127; c++) {
-      auto nextState = state->moveThrough(c);
-      if (nextState) {
-        if (visited.count(nextState->getId()) == 0) {
-          q.push(nextState);
-        }
-      }
-    } 
-
-  }
-
-  vector<set<shared_ptr<const dfa::State>>> stateSets;
-  stateSets.push_back(rejectingStates);
-  stateSets.push_back(acceptingStates);
-  // for(auto state: acceptingStates) {
-  //   stateSets.emplace_back(set<shared_ptr<const dfa::State>>{state});
-  // }
-
-  return stateSets;
-}
-
-}
+}  // namespace DFABuilder
