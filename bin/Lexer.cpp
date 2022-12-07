@@ -51,6 +51,14 @@ auto main(int argc, char** argv) -> int {
   
   s.finishSimulation();
 
+  // TODO: write in a file?
+  if(s.getErrors().size()) {
+    std::cout << "found the following errors:\n";
+    for(auto& e: s.getErrors())
+      std::cout << e << "\n";
+  }
+
+
   printDFA(dfaStartState, tableOutputFile);
   return 0;
 }

@@ -1,17 +1,18 @@
 #include <Simulator/Simulator.h>
 #include <optional>
 #include <string>
+#include <vector>
 
 Simulator::Simulator(std::shared_ptr<const dfa::State> startState,
                      std::ostream& o)
-    : startState_(startState), currentState_(startState), o_(o), lastAcceptingState_(startState) {}
+    : startState_(startState), currentState_(startState), o_(o), lastAcceptingState_(nullptr) {}
 
 void Simulator::consumeCharacter(char character) {
   if (std::isspace(character) && currentState_ == startState_) {
     return;
   }
   buffer.push_back(character);
-  auto nextState = currentState_->moveThrough(character);  
+  auto nextState = currentState_->moveThrough(character);
   if (nextState) {
     currentState_ = nextState;
     // save last accepting value
@@ -36,7 +37,8 @@ void Simulator::flushLastAcceptingState() {
       consumeCharacter(c);
     }
   } else if(!buffer.empty()){
-     throw std::runtime_error("No matched prefix for " + std::string(buffer.begin(), buffer.end()));
+    errors.emplace_back("No matched token for " + std::string(buffer.begin(), buffer.end()));
+    buffer.clear();
   }
 }
 
@@ -47,6 +49,11 @@ void Simulator::finishSimulation() {
 
   // are there characters that couldn't be analyzed?
   if(!buffer.empty()) {
-    throw std::runtime_error("No matched prefix for " + std::string(buffer.begin(), buffer.end()));
+    errors.emplace_back("No matched token for " + std::string(buffer.begin(), buffer.end()));
+    buffer.clear();
   }
 }
+
+std::vector<std::string> Simulator::getErrors(){
+  return errors;
+} 

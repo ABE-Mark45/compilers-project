@@ -1,6 +1,7 @@
 #pragma once
 #include <DFA/State.h>
 #include <iostream>
+#include <string>
 #include <memory>
 
 class Simulator {
@@ -13,6 +14,7 @@ class Simulator {
 
   void finishSimulation();
 
+  std::vector<std::string> getErrors();
  private:
 
   void flushLastAcceptingState();
@@ -22,4 +24,5 @@ class Simulator {
   std::ostream& o_;
   std::shared_ptr<const dfa::State> lastAcceptingState_;
   std::vector<char> buffer;
+  std::vector<std::string> errors;
 };

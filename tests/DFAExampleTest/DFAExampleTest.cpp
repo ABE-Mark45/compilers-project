@@ -7,13 +7,37 @@
 #include "Readers/ProgramReader.h"
 #include "Simulator/Simulator.h"
 
+// Declaration (Header):
+
+// standard C++ header:
+#include <string>
+
+// returns file path of this executable
+std::string getExecPath();
+
+/**************************************************************************/
+
+// Definition (C++ Source):
+
+// standard C++ header:
+#include <cstring>
+#include <codecvt>
+#include <locale>
+
+// OS header:
+#ifdef _WIN32 // Is this Windows?
+#include <windows.h>
+#else // (not) _WIN32 // Then it's hopefully Linux.
+#include <unistd.h>
+#endif // _WIN32
+
 TEST(DFAExampleTest, test) {
   const std::filesystem::path rulesFilePath{
-      "/mnt/d/Projects/compilers-project/resources/rules.txt"};
+      "../../../resources/rules.txt"};
   LanguageRulesReader rulesReader(rulesFilePath);
 
   const std::filesystem::path programFilePath{
-      "/mnt/d/Projects/compilers-project/resources/program.txt"};
+      "../../../resources/program.txt"};
   ProgramReader programReader(programFilePath);
 
   LanguageRulesParser parser;
