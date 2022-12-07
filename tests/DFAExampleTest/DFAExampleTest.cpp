@@ -6,6 +6,8 @@
 #include "Readers/LanguageRulesReader.h"
 #include "Readers/ProgramReader.h"
 #include "Simulator/Simulator.h"
+#include <sstream>
+#include <string>
 
 // Declaration (Header):
 
@@ -58,4 +60,42 @@ TEST(DFAExampleTest, test) {
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
   }
+
+  s.finishSimulation();
+}
+
+TEST(DFAExampleTest, errorRecovery) {
+  const std::filesystem::path rulesFilePath{
+      "../../../resources/rules.txt"};
+  LanguageRulesReader rulesReader(rulesFilePath);
+
+  const std::filesystem::path programFilePath{
+      "../../../resources/program2.txt"};
+  ProgramReader programReader(programFilePath);
+
+  
+  LanguageRulesParser parser;
+  while (auto rule = rulesReader.getLine()) {
+    parser.parseLine(rule.value());
+  }
+
+  nfa::NFABuilder nfaBuilder(
+      parser.getPostfixRegexExpressions(), parser.getKeywords(),
+      parser.getPunctuationCharacters(), parser.getPriorities());
+
+  auto nfa = nfaBuilder.getCombinedNFA();
+
+  auto dfaStartState = DFABuilder::buildDFA(std::move(nfa));
+
+  std::stringstream ss;
+  Simulator s(dfaStartState,ss);
+
+  while (programReader.hasChar()) {
+    s.consumeCharacter(programReader.getChar());
+  }
+
+  s.finishSimulation();
+
+
+  ASSERT_EQ(ss.str(), "if\nid\n");
 }
