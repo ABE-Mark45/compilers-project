@@ -215,7 +215,7 @@ std::shared_ptr<const dfa::State> minimizeDFA(
     oldGroupsCount = newGroupsCount;
 
     newGroupMembership.clear();
-    oldGroups = groups;
+    oldGroups = std::move(groups);
     groups.clear();
 
     for (const auto group : oldGroups) {
