@@ -5,7 +5,10 @@
 
 Simulator::Simulator(std::shared_ptr<const dfa::State> startState,
                      std::ostream& o)
-    : startState_(startState), currentState_(startState), o_(o), lastAcceptingState_(nullptr) {}
+    : startState_(startState),
+      currentState_(startState),
+      o_(o),
+      lastAcceptingState_(nullptr) {}
 
 void Simulator::consumeCharacter(char character) {
   if (std::isspace(character) && currentState_ == startState_) {
@@ -16,7 +19,7 @@ void Simulator::consumeCharacter(char character) {
   if (nextState) {
     currentState_ = nextState;
     // save last accepting value
-    if(currentState_->getAcceptValue()) {
+    if (currentState_->getAcceptValue()) {
       lastAcceptingState_ = currentState_;
       buffer.clear();
     }
@@ -33,11 +36,14 @@ void Simulator::flushLastAcceptingState() {
     lastAcceptingState_.reset();
     currentState_ = startState_;
     std::vector<char> newInput = std::move(buffer);
-    for(char c: newInput){
+    for (char c : newInput) {
       consumeCharacter(c);
     }
-  } else if(!buffer.empty()){
-    errors.emplace_back("No matched token for " + std::string(buffer.begin(), buffer.end()));
+  } else if (!buffer.empty()) {
+    auto errorMessage =
+        "No matched token for " + std::string(buffer.begin(), buffer.end());
+    o_ << errorMessage << '\n';
+    errors.emplace_back(errorMessage);
     buffer.clear();
   }
 }
@@ -48,12 +54,15 @@ void Simulator::finishSimulation() {
   }
 
   // are there characters that couldn't be analyzed?
-  if(!buffer.empty()) {
-    errors.emplace_back("No matched token for " + std::string(buffer.begin(), buffer.end()));
+  if (!buffer.empty()) {
+    auto errorMessage =
+        "No matched token for " + std::string(buffer.begin(), buffer.end());
+    o_ << errorMessage << '\n';
+    errors.emplace_back(errorMessage);
     buffer.clear();
   }
 }
 
-std::vector<std::string> Simulator::getErrors(){
+std::vector<std::string> Simulator::getErrors() {
   return errors;
-} 
+}

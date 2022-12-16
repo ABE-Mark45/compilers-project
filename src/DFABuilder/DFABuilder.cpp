@@ -65,13 +65,14 @@ std::pair<MembershipTableType, int> getAcceptingAndRejectingStates(
   return {membership, acceptValueToIndex.size() + 1};
 }
 
-std::vector<unordered_set<shared_ptr<const dfa::State>>> getAcceptingAndRejectingStateGroups(
+std::vector<unordered_set<shared_ptr<const dfa::State>>>
+getAcceptingAndRejectingStateGroups(
     std::shared_ptr<const dfa::State> startState) {
 
   unordered_set<shared_ptr<const dfa::State>> acceptingStates, rejectingStates;
   std::unordered_set<shared_ptr<const dfa::State>> visited{startState};
   queue<shared_ptr<const dfa::State>> q;
-  
+
   q.push(startState);
   while (!q.empty()) {
     auto currentState = q.front();
@@ -93,7 +94,6 @@ std::vector<unordered_set<shared_ptr<const dfa::State>>> getAcceptingAndRejectin
 
   return {acceptingStates, rejectingStates};
 }
-
 
 auto isStatesGroupEquivalent =
     [](shared_ptr<const dfa::State> a, shared_ptr<const dfa::State> b,
@@ -207,7 +207,8 @@ std::shared_ptr<const dfa::State> minimizeDFA(
   MembershipTableType oldGroupMembership;
 
   int oldGroupsCount;
-  std::vector<unordered_set<shared_ptr<const dfa::State>>> groups = getAcceptingAndRejectingStateGroups(startState);
+  std::vector<unordered_set<shared_ptr<const dfa::State>>> groups =
+      getAcceptingAndRejectingStateGroups(startState);
   std::vector<unordered_set<shared_ptr<const dfa::State>>> oldGroups;
 
   do {
@@ -220,10 +221,11 @@ std::shared_ptr<const dfa::State> minimizeDFA(
 
     for (const auto group : oldGroups) {
       int numNewGroups = 0;
-      for(const auto currentState: group){
+      for (const auto currentState : group) {
         bool isCurrentStateAddedToGroup = false;
 
-        for (int groupIdx = groups.size()-numNewGroups; groupIdx < groups.size(); groupIdx++) {
+        for (int groupIdx = groups.size() - numNewGroups;
+             groupIdx < groups.size(); groupIdx++) {
           // `std::cout << groupIdx << std::endl;
           auto& group = groups[groupIdx];
           const auto groupState = *group.begin();
@@ -272,8 +274,8 @@ std::shared_ptr<const dfa::State> minimizeDFA(
       resultState->addTransition(transition, resultStates[nextStateMembership]);
     }
 
-    cout << resultState.get()->getId() <<" -> " << 
-      resultState->moveThrough(1).get()->getId() << "," << resultState->moveThrough(2).get()->getId() << std::endl;
+    // cout << resultState.get()->getId() <<" -> " <<
+    //   resultState->moveThrough(1).get()->getId() << "," << resultState->moveThrough(2).get()->getId() << std::endl;
   }
 
   auto reachableStates = getReachableStates(resultStartingState);
