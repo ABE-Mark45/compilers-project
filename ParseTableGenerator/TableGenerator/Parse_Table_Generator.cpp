@@ -141,29 +141,45 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
                             int start = i;
                             if(i+1<prod.size()){
                                 i++;
-                                if(!prod[i].second&&!containsEps(first.find(prod[i].first)->second)){
+                                if(prod[i].second){
+                                    state_follow.push_back(prod[i].first);
+                                }
+                                else if(!prod[i].second&&!containsEps(first.find(prod[i].first)->second)){
                                     vector<pair<basic_string<char>,
                                             vector<pair<basic_string<char>, bool>>>>first_of_st=first.find(prod[i].first)->second;
                                     for(auto & j : first_of_st){
                                         state_follow.push_back(j.first);
                                     }
-                                }else {
-                                    while (i < prod.size() && (prod[i].second || containsEps(first.find(
-                                            prod[i].first)->second))) {//while first don't contain epsilon continue to put first in the follow
-                                        if (prod[i].second) {
-                                            state_follow.push_back(prod[i].first);
-                                            break;
-                                        } else {
-                                            vector<pair<basic_string<char>,
-                                                    vector<pair<basic_string<char>, bool>>>> first_of_st = first.find(
-                                                    prod[i].first)->second;
-                                            for (auto &j: first_of_st) {
-                                                if (j.first != "\\L") {
-                                                    state_follow.push_back(j.first);
-                                                }
+                                }
+                                else {
+                                    while (i < prod.size() &&!prod[i].second && containsEps(first.find(
+                                            prod[i].first)->second)) {//while first don't contain epsilon continue to put first in the follow
+                                        vector<pair<basic_string<char>,
+                                                vector<pair<basic_string<char>, bool>>>> first_of_st = first.find(
+                                                prod[i].first)->second;
+                                        for (auto &j: first_of_st) {
+                                            if (j.first != "\\L") {
+                                                state_follow.push_back(j.first);
                                             }
                                         }
                                         i++;
+                                    }
+                                    if(i==prod.size()){
+                                        //put follow of second production
+                                        if(follow.count(it2)>0){
+                                            for(auto&follow_state:follow.find(it2)->second){
+                                                state_follow.push_back(follow_state);
+                                            }
+                                        }
+                                    }else if(prod[i-1].second){
+                                        state_follow.push_back(prod[i].first);
+                                    }else{
+                                        //doesn't contain eps
+                                        vector<pair<basic_string<char>,
+                                                vector<pair<basic_string<char>, bool>>>>first_of_st=first.find(prod[i-1].first)->second;
+                                        for(auto & j : first_of_st){
+                                            state_follow.push_back(j.first);
+                                        }
                                     }
                                 }
                                 //break;
