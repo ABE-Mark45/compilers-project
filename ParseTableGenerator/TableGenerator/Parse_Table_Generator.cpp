@@ -40,7 +40,6 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
     set<string>nonTerminals = getNonTerminals(m);
 
 
-
     std::vector<string> non_terminals_vector(nonTerminals.begin(), nonTerminals.end());
 
     while (true) {
@@ -49,29 +48,34 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
             vector<pair<string,vector<pair<basic_string<char>,bool>>>> state_first;
             vector<vector<pair<string, bool>>> vec = m.find(it)->second;
             for (const auto &j: vec) {
-                for (auto &k: j) {
-                    if (k.second) {
-                        //it is terminal so the first is itself
-                        state_first.emplace_back(k.first,j);
-                        break;//Don't look at the rest before or
-                    }else{
-                        vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>first_RHS;
-                        if (first.count(k.first) > 0) {
-                            first_RHS = first.find(k.first)->second;
-                            bool go_to_eps = false;
-                            for (const auto &i: first_RHS) {
-                                if (i.first != "\\L") {
-                                    state_first.emplace_back(i.first,j);
-                                } else {
-                                    go_to_eps = true;
+                if(j.empty()){
+                    state_first.push_back({"\\L",{}});
+                }else {
+                    for (auto &k: j) {
+                        if (k.second) {
+                            //it is terminal so the first is itself
+                            state_first.emplace_back(k.first, j);
+                            break;//Don't look at the rest before or
+                        } else {
+                            vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>> first_RHS;
+                            if (first.count(k.first) > 0) {
+                                first_RHS = first.find(k.first)->second;
+                                bool go_to_eps = false;
+                                for (const auto &i: first_RHS) {
+                                    if (i.first != "\\L") {
+                                        state_first.emplace_back(i.first, j);
+                                    } else {
+                                        go_to_eps = true;
+                                    }
                                 }
-                            }
-                            if (!go_to_eps) {
-                                break;
+                                if (!go_to_eps) {
+                                    break;
+                                }
                             }
                         }
                     }
                 }
+
             }
             //Removing duplicates
             vector<pair<string,vector<pair<basic_string<char>,bool>>>> state_first_unique;
