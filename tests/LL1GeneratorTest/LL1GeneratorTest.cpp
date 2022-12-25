@@ -69,3 +69,129 @@ TEST(LL1GeneratorTest, SmallTest) {
 
   ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
 }
+
+TEST(LL1GeneratorTest, FactoringSmall) {
+
+  ProductionsTable inputTable{
+      {"A",
+       {
+           {{"X", false}, {"Y", false}, {"Z", false}, {"c", true}},
+           {{"X", false}, {"Y", false}, {"Z", false}, {"b", true}}
+       }
+      }
+    };
+
+  // Epsilon productions are empty vectors
+  const ProductionsTable outputTable{
+    {"A", 
+    {
+        {{"X", false}, {"Y", false}, {"Z", false}, {"A#0", false}}
+    }},
+    {"A#0",
+    {
+        {{"b", true}},
+        {{"c", true}}
+    }}
+  };
+
+  LL1Generator ll1Generator(inputTable);
+
+  ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
+}
+
+TEST(LL1GeneratorTest, FactoringBig) {
+
+  ProductionsTable inputTable{
+      {"A",
+       {
+           {{"X", false}, {"Y", false}, {"f", true}},
+           {{"X", false}, {"Y", false}, {"g", true}},
+           {{"X", false}, {"Y", false}, {"Z", false}, {"c", true}},
+           {{"X", false}, {"Y", false}, {"Z", false}, {"b", true}}
+       }
+      },
+      {"B",
+       {
+        {{"b", true}}
+       }
+      }
+    };
+
+  // Epsilon productions are empty vectors
+  const ProductionsTable outputTable{
+    {"A", 
+     {
+        {{"X", false}, {"Y", false}, {"A#1", false}}
+     }},
+    {"A#0",
+     {
+        {{"b", true}},
+        {{"c", true}}
+     }
+    },
+    {"A#1",
+    {
+        {{"Z", false}, {"A#0", false}},
+        {{"f", true}},
+        {{"g", true}}
+    }
+    },
+    {"B",
+       {
+        {{"b", true}}
+       }
+    }
+  };
+
+  LL1Generator ll1Generator(inputTable);
+
+  ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
+}
+
+TEST(LL1GeneratorTest, AlreadyLL1) {
+
+  ProductionsTable inputTable{
+      {"A",
+       {
+        {{"a", true}, {"B", false}}
+       }
+      },
+      {"B",
+       {
+        {{"b", true}, {"C", false}, {"b", true}}//,
+        //{}
+       }
+      },
+      {"C",
+       {
+        {{"c", false}}//,
+        //{}
+       }
+      }
+    };
+
+  // Epsilon productions are empty vectors
+  const ProductionsTable outputTable{
+      {"A",
+       {
+        {{"a", true}, {"B", false}}
+       }
+      },
+      {"B",
+       {
+        {{"b", true}, {"C", false}, {"b", true}}//,
+        //{}
+       }
+      },
+      {"C",
+       {
+        {{"c", false}}//,
+        //{}
+       }
+      }
+    };
+
+  LL1Generator ll1Generator(inputTable);
+
+  ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
+}

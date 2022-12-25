@@ -1,6 +1,7 @@
 #include "./LL1Generator.h"
 #include <set>
 #include <iostream>
+#include <algorithm>
 
 
 void LL1Generator::removeEpsilonProductions(){
@@ -11,7 +12,7 @@ void LL1Generator::removeCycles(){
     //TODO
 }
 
-void LL1Generator::eliminateImmediateLeftRecursion(std::string nonTerminalName){
+void LL1Generator::eliminateImmediateLeftRecursion(const std::string& nonTerminalName){
     // split the productions to two groups, those that start with NT A and those that don't
     // create new NT A'
     // for each production that doesn't start with A
@@ -25,6 +26,9 @@ void LL1Generator::eliminateImmediateLeftRecursion(std::string nonTerminalName){
         else
             not_start_with_A.push_back(prod);
     }
+
+    if (start_with_A.empty()) // no left recursion
+        return;
 
     std::vector<ProductionContent> new_A_productions, A_prime_productions;
     std::string A_prime = nonTerminalName+"'";
@@ -45,11 +49,8 @@ void LL1Generator::eliminateImmediateLeftRecursion(std::string nonTerminalName){
     table_[A_prime] = std::move(A_prime_productions);
 }
 
-
-LL1Generator::LL1Generator(ProductionsTable& table_in): table_(table_in){
-    removeEpsilonProductions();
-    removeCycles();
-
+void LL1Generator::eliminateLeftRecursion(){
+    // *Eliminate left recursion*:
     // for each NT Ai
     //      obtain the set of previous NTs
     //      for each production of Ai
@@ -90,4 +91,99 @@ LL1Generator::LL1Generator(ProductionsTable& table_in): table_(table_in){
 
         eliminateImmediateLeftRecursion(Ai);
     }
+}
+
+int LL1Generator::lengthOfCommonPrefix(const ProductionContent& p1, const ProductionContent& p2){
+    if (p1.empty())
+        return 0;
+    int ans = 0;
+    while(p1[ans] == p2[ans]) ans++;
+    return ans;
+}
+
+void LL1Generator::leftFactor(){
+    // *Left factor*:
+    // for each NT A in table:
+    //      sort productions
+    //      find length of common prefix between each 2 consecutive productions
+    //      factors = 0
+    //      do{
+    //          find a run of productions with a longest common prefix (from, to, len)
+    //          if (len == 0) break
+    //          create NT A"#factors with productions = productions[A][from:to][len:]
+    //          replace productions[A][from:to] with prefix + A"#factors
+    //          remove common[A][from:to - 1]
+    //      } while there is a non-empty common prefix between any two productions 
+    
+    std::vector<std::string> NTs;
+    for (auto& [NT, productions]: table_)
+        NTs.push_back(NT);
+
+    for (auto& A: NTs){
+        std::vector<ProductionContent> productions(table_[A].size());
+        std::copy(table_[A].begin(), table_[A].end(), productions.begin());
+
+        std::sort(productions.begin(), productions.end());
+        int n_A_productions = productions.size();
+
+        int common[n_A_productions - 1];
+        for (int i = 0; i < n_A_productions - 1; i++) 
+            common[i] = lengthOfCommonPrefix(productions[i], productions[i+1]);
+        
+        int from, to, prefix_len, n_factors = 0;
+        bool run = false;
+        while (true){
+
+            from = 0; to = -1; prefix_len = 0;
+            for (int i = 0; i < n_A_productions - 1; i++){
+                if (common[i] > prefix_len){
+                    prefix_len = common[i];
+                    from = i;
+                    to = i + 2;
+                    run = true;
+                }else if (common[i] == prefix_len){
+                    if (run) to++;
+                }else if (common[i] < prefix_len){
+                    run = false;
+                }
+            }
+
+            if (prefix_len == 0) break;
+
+            ProductionContent prefix(productions[from].begin(),
+                                     productions[from].begin() + prefix_len); 
+            
+
+            std::string A_prime = A + '#' + std::to_string(n_factors);
+            std::vector<ProductionContent> A_prime_productions;
+            for (int i = from; i < to; i++){
+                ProductionContent production(productions[i].begin() + prefix_len,
+                                             productions[i].end());
+                A_prime_productions.emplace_back(production);
+            }
+            table_[A_prime] = std::move(A_prime_productions);
+
+            prefix.emplace_back(A_prime, false);
+            productions[from] = std::move(prefix);
+            productions.erase(productions.begin() + from + 1,
+                              productions.begin() + to);
+            
+            n_A_productions = productions.size();
+            for (int i = from; i < n_A_productions - 1; i++)
+                common[i] = common[i + to - from - 1];
+
+            n_factors++;
+        }
+
+        if (n_factors) table_[A] = std::move(productions);
+    }
+}
+
+LL1Generator::LL1Generator(ProductionsTable& table_in): table_(table_in){
+    removeEpsilonProductions();
+    removeCycles();
+
+    eliminateLeftRecursion();
+
+    leftFactor();
 }

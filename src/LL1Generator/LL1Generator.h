@@ -11,7 +11,10 @@ class LL1Generator {
  private:
   void removeEpsilonProductions();
   void removeCycles();
-  void eliminateImmediateLeftRecursion(std::string nonTerminalName);
+  void eliminateImmediateLeftRecursion(const std::string& nonTerminalName);
+  void eliminateLeftRecursion();
+  int lengthOfCommonPrefix(const ProductionContent&, const ProductionContent&);
+  void leftFactor();
 
   ProductionsTable table_;
 };
