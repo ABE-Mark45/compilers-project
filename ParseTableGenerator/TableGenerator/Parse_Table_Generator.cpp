@@ -6,9 +6,7 @@
 #include <set>
 #include "Parse_Table_Generator.h"
 using namespace std;
-void Parse_Table_Generator::getX(int x) {
-    cout << "x = " << x << endl;
-}
+
 set<string>getTerminals(const map<string,vector<vector<pair<string ,bool>>>>&m){
     set<string>terminals;
     //loop in map c++ and find if any production goes to terminal or not
@@ -38,7 +36,7 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
                                       map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>&first){
     //map<string,vector<pair<string,vector<pair<string,bool>>>>>
     //if first is not changed from last loop so there is recursion
-    map<string,vector<pair<string,vector<pair<string,bool>>>>>prev_first=first;
+    map<string,vector<pair<string,vector<pair<string,bool>>>>>prev_first;
     set<string>nonTerminals = getNonTerminals(m);
 
 
@@ -54,7 +52,6 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
                 for (auto &k: j) {
                     if (k.second) {
                         //it is terminal so the first is itself
-                        //cout<<"Terminal"<<endl;
                         state_first.emplace_back(k.first,j);
                         break;//Don't look at the rest before or
                     }else{
@@ -64,7 +61,7 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
                             bool go_to_eps = false;
                             for (const auto &i: first_RHS) {
                                 if (i.first != "\\L") {
-                                    state_first.emplace_back(i.first,i.second);
+                                    state_first.emplace_back(i.first,j);
                                 } else {
                                     go_to_eps = true;
                                 }
@@ -81,7 +78,7 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
             for(int i=0;i<state_first.size();i++){
                 bool isUnique = true;
                 for(int j = i+1;j<state_first.size();j++){
-                    if(state_first[i].first==state_first[j].first){
+                    if(state_first[i].first==state_first[j].first&&state_first[i].second==state_first[j].second){
                         isUnique = false;
                     }
                 }
@@ -121,7 +118,6 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
     std::vector<string> non_terminals_vector(nonTerminals.begin(), nonTerminals.end());
     map<string,vector<string>> prev_follow;
 
-    map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>::iterator itr;
 
     while(true){
         prev_follow = follow;
@@ -222,17 +218,46 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
     }
 }
 map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> Parse_Table_Generator::getTable(const map<string,vector<vector<pair<string ,bool>>>>& m) {
-    /*set<string>terminals = getTerminals(m);
-    map<pair<string/*NT*//*,string/*token*//*>,vector<pair<string/*NT or Terminal*//*,bool>>> table;
-    /*map<string,vector<string>>first;
+    set<string>terminals = getTerminals(m);
+    map<pair<string/*NT*/,basic_string<char>/*token*/>,vector<pair<basic_string<char>/*NT or Terminal*/,bool>>> table;
     map<string,vector<string>>follow;
+    map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>first;
+    set<string>nonTerminals = getNonTerminals(m);
+    std::vector<string> non_terminals_vector(nonTerminals.begin(), nonTerminals.end());
     getFirst(m,first);
     getFollow(m,follow);
-    for(int i=0;i<first.size();i++){
-
+    //loop on all first
+    for(auto&non_terminal:non_terminals_vector){
+        vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>> first_of_non_term = first[non_terminal];
+        for(auto&prod:first_of_non_term){
+            if(prod.first!="\\L"){
+                if(table.count({non_terminal,prod.first})>0 ){
+                    cout<<"ERROR Grammar is ambiguous"<<endl;
+                    continue;
+                }
+                //table[{non_terminal,prod.first}] = prod.second;
+                table.insert({{non_terminal,prod.first},prod.second});
+            }else{
+                //put in the follow places this epsilon production
+                vector<string>follow_of_non_term = follow[non_terminal];
+                for(auto&follow_NT:follow_of_non_term){
+                    if(table.count({non_terminal,follow_NT})>0 ){
+                        cout<<"ERROR Grammar is ambiguous"<<endl;
+                        continue;
+                    }
+                    table[{non_terminal,follow_NT}] = {};
+                }
+            }
+        }
     }
-    for(int i=0;i<follow.size();i++){
-
+    //loop on all nonTerminals and follow of them and put sync if cell is empty
+    for(auto&non_terminal:non_terminals_vector){
+        vector<string>follow_of_non_term = follow[non_terminal];
+        for(auto&follow_NT:follow_of_non_term){
+            if(table.count({non_terminal,follow_NT})==0){
+                table[{non_terminal,follow_NT}] = {{"sync", true}};
+            }
+        }
     }
-    return table;*/
+    return table;
 }
