@@ -32,9 +32,9 @@ int main() {
     */
     m.insert({E,
               {{{T, false},{E_dash,false}}}});
-    m.insert({E_dash,{{{"+", true},{T,false},{E_dash,false}},{{eps, true}}}});
+    m.insert({E_dash,{{{"+", true},{T,false},{E_dash,false}},{}}});
     m.insert({T,{{{F, false},{T_dash,false}}}});
-    m.insert({T_dash,{{{"*", true},{F, false},{T_dash, false}},{{eps, true}}}});
+    m.insert({T_dash,{{{"*", true},{F, false},{T_dash, false}},{}}});
     m.insert({F,{{{"(", true},{E,false},{")", true}},{{"id", true}}}});
    /* string  A="A";
     string B ="B";
