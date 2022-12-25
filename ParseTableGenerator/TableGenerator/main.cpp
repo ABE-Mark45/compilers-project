@@ -43,7 +43,7 @@ int main() {
     m.insert({B,{{{C, false}},{{"y", true},{A, false}}}});
     m.insert({C,{{{B, false}},{{"w", true}},{{"z", true}}}});
 */
-    /*Parse_Table_Generator::getFirst(m,first);
+    Parse_Table_Generator::getFirst(m,first);
     map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>::iterator itr;
     for(itr=first.begin();itr!=first.end();itr++)
     {
@@ -53,7 +53,7 @@ int main() {
         }
         cout<<endl;
     }
-*/
+
 
     Parse_Table_Generator::getFollow(m,follow);
     //cout<<first.size()<<endl;
@@ -66,16 +66,17 @@ int main() {
         }
         cout<<endl;
     }
-
-    map<char,vector<char>>m1={{'A',{'b','c'}}};
-    map<char,vector<char>>m2={{'A',{'b','c'}}};
-    if(m1==m2){
-        cout<<"Equal"<<endl;
+    map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> t = Parse_Table_Generator::getTable(m);
+    map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>>::iterator itr2;
+    cout<<"Table"<<endl;
+    for(itr2=t.begin();itr2!=t.end();itr2++)
+    {
+        cout<<itr2->first.first<<" "<<itr2->first.second<<"          ";
+        for(auto&vec:itr2->second){
+            cout<<vec.first<<" "<<vec.second<<"            ";
+        }
+        cout<<endl;
     }
-    vector<char>v = {'b','c'};
-    m1.find('A')->second = v;
-    if(m1==m2){
-        cout<<"Equal"<<endl;
-    }
+    cout<<"Ended"<<endl;
     return 0;
 }
