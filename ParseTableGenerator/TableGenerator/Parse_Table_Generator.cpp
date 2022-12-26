@@ -172,7 +172,7 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
                                             }
                                         }
                                     }else if(prod[i-1].second){
-                                        state_follow.push_back(prod[i].first);
+                                        state_follow.push_back(prod[i-1].first);
                                     }else{
                                         //doesn't contain eps
                                         vector<pair<basic_string<char>,
