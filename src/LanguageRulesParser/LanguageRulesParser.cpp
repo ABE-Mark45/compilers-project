@@ -121,7 +121,7 @@ std::vector<Token> LanguageRulesParser::parseDef(std::string_view line,
         }
 
         if (line[idx + 1] == 'L') {
-          tokens.emplace_back(TokenType::EPSILON, 0);
+          tokens.emplace_back(TokenType::EPSILON, '\0');
         } else {
           tokens.emplace_back(TokenType::CHAR, line[idx + 1]);
         }
