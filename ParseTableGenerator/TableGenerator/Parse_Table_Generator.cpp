@@ -259,7 +259,7 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
         vector<string>follow_of_non_term = follow[non_terminal];
         for(auto&follow_NT:follow_of_non_term){
             if(table.count({non_terminal,follow_NT})==0){
-                table[{non_terminal,follow_NT}] = {{"sync", true}};
+                table[{non_terminal,follow_NT}] = {{"", true}};//sync
             }
         }
     }
