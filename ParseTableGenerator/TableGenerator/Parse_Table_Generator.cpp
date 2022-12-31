@@ -82,7 +82,7 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
             for(int i=0;i<state_first.size();i++){
                 bool isUnique = true;
                 for(int j = i+1;j<state_first.size();j++){
-                    if(state_first[i].first==state_first[j].first){//&&state_first[i].second==state_first[j].second
+                    if(state_first[i].first==state_first[j].first&&state_first[i].second==state_first[j].second){//&&state_first[i].second==state_first[j].second
                         isUnique = false;
                     }
                 }
