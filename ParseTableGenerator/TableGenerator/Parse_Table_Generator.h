@@ -14,8 +14,6 @@ using namespace std;
  * */
 class Parse_Table_Generator {
 public:
-    static void getX(int);
-
     static map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>
     getTable(const map<string, vector<vector<pair<string, bool>>>> &);
 
@@ -23,6 +21,7 @@ public:
     //every production it maps to is either true or false
     static void getFirst(const map<string, vector<vector<pair<string, bool>>>> &m, map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>> &first);
     static void getFollow(const map<string, vector<vector<pair<string, bool>>>> &m, map<string, vector<string>> &follow);
+    static bool get_is_ambiguous();
 };
 
 //#endif //TABLEGENERATOR_PARSE_TABLE_GENERATOR_H
