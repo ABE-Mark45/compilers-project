@@ -7,7 +7,7 @@
 #include "NFABuilder/NFABuilder.h"
 #include "Readers/LanguageRulesReader.h"
 #include "Readers/ProgramReader.h"
-#include "Simulator/Simulator.h"
+#include "Simulator/LexicalSimulator.h"
 
 // Declaration (Header):
 
@@ -53,7 +53,7 @@ TEST(DFAExampleTest, test) {
 
   auto dfaStartState = DFABuilder::buildDFA(std::move(nfa));
 
-  Simulator s(dfaStartState);
+  LexicalSimulator s(dfaStartState);
 
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
@@ -83,8 +83,7 @@ TEST(DFAExampleTest, errorRecovery) {
 
   auto dfaStartState = DFABuilder::buildDFA(std::move(nfa));
 
-  std::stringstream ss;
-  Simulator s(dfaStartState, ss);
+  LexicalSimulator s(dfaStartState);
 
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
@@ -92,5 +91,9 @@ TEST(DFAExampleTest, errorRecovery) {
 
   s.finishSimulation();
 
-  ASSERT_EQ(ss.str(), "if\nNo matched token for #\nid\n");
+  // TODO:
+  ASSERT_EQ(s.getErrors()[0], "No matched token for #");
+
+  ASSERT_EQ(s.getTokens()[0], "if");
+  ASSERT_EQ(s.getTokens()[1], "id");
 }

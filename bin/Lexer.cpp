@@ -7,7 +7,7 @@
 #include "NFABuilder/NFABuilder.h"
 #include "Readers/LanguageRulesReader.h"
 #include "Readers/ProgramReader.h"
-#include "Simulator/Simulator.h"
+#include "Simulator/LexicalSimulator.h"
 #include "utils/DFAPrinter.h"
 
 auto main(int argc, char** argv) -> int {
@@ -44,7 +44,7 @@ auto main(int argc, char** argv) -> int {
   auto dfaStartState =  DFABuilder::minimizeDFA(DFABuilder::buildDFA(std::move(nfa)));
 
   // lexical analysis
-  Simulator s(dfaStartState);
+  LexicalSimulator s(dfaStartState);
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
   }
