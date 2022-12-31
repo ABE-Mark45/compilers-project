@@ -247,7 +247,7 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
                 vector<string>follow_of_non_term = follow[non_terminal];
                 for(auto&follow_NT:follow_of_non_term){
                     if(table.count({non_terminal,follow_NT})>0 ){
-                        cout<<"ERROR Grammar is ambiguous"<<endl;
+                        cout<<"ERROR Grammar is ambiguous"<<endl;is_ambigious = true;
                         continue;
                     }
                     table[{non_terminal,follow_NT}] = {};
