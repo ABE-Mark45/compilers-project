@@ -6,7 +6,7 @@
 #include <set>
 #include "Parse_Table_Generator.h"
 using namespace std;
-
+bool is_ambigious = false;
 set<string>getTerminals(const map<string,vector<vector<pair<string ,bool>>>>&m){
     set<string>terminals;
     //loop in map c++ and find if any production goes to terminal or not
@@ -82,7 +82,7 @@ void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string
             for(int i=0;i<state_first.size();i++){
                 bool isUnique = true;
                 for(int j = i+1;j<state_first.size();j++){
-                    if(state_first[i].first==state_first[j].first&&state_first[i].second==state_first[j].second){//&&state_first[i].second==state_first[j].second
+                    if(state_first[i].first==state_first[j].first&&state_first[i].second==state_first[j].second){
                         isUnique = false;
                     }
                 }
@@ -236,6 +236,7 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
         for(auto&prod:first_of_non_term){
             if(prod.first!="\\L"){
                 if(table.count({non_terminal,prod.first})>0 ){
+                    is_ambigious = true;
                     cout<<"ERROR Grammar is ambiguous"<<endl;
                     continue;
                 }
@@ -259,9 +260,13 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
         vector<string>follow_of_non_term = follow[non_terminal];
         for(auto&follow_NT:follow_of_non_term){
             if(table.count({non_terminal,follow_NT})==0){
-                table[{non_terminal,follow_NT}] = {{"", true}};//sync
+                table[{non_terminal,follow_NT}] = {{"sync", true}};
             }
         }
     }
     return table;
+}
+
+bool Parse_Table_Generator::get_is_ambiguous() {
+    return false;
 }
