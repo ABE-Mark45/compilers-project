@@ -30,19 +30,19 @@ int main() {
         cout<<it->first<<endl;
     }
     */
-    m.insert({E,
+    /*m.insert({E,
               {{{T, false},{E_dash,false}}}});
     m.insert({E_dash,{{{"+", true},{T,false},{E_dash,false}},{}}});
     m.insert({T,{{{F, false},{T_dash,false}}}});
     m.insert({T_dash,{{{"*", true},{F, false},{T_dash, false}},{}}});
-    m.insert({F,{{{"(", true},{E,false},{")", true}},{{"id", true}}}});
-   /* string  A="A";
+    m.insert({F,{{{"(", true},{E,false},{")", true}},{{"id", true}}}});*/
+    string  A="A";
     string B ="B";
     string C="C";
     m.insert({A,{{{B, false}},{{C, false},{"x", true}},{{eps, true}}}});
     m.insert({B,{{{C, false}},{{"y", true},{A, false}}}});
     m.insert({C,{{{B, false}},{{"w", true}},{{"z", true}}}});
-*/
+
     Parse_Table_Generator::getFirst(m,first);
     map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>::iterator itr;
     for(itr=first.begin();itr!=first.end();itr++)
@@ -50,7 +50,12 @@ int main() {
         cout<<itr->first<<" ";
         for(int j=0;j<itr->second.size();j++){
             cout<<itr->second[j].first<<" ";
+            for(auto&x:itr->second[j].second){
+                cout<<x.first<<" ";
+            }
+            cout<<"                  ";
         }
+
         cout<<endl;
     }
 
