@@ -113,7 +113,7 @@ bool containsEps(const vector<pair<basic_string<char>, vector<pair<basic_string<
     return false;
 }
 void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string ,bool>>>>&m,
-                                      map<string,vector<string>>& follow){
+                                      map<string,vector<string>>& follow,const string& start_symbol){
 //We don't need to know which equation gave us this follow so only this map is good
 
     map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>first;
@@ -127,7 +127,7 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
         prev_follow = follow;
         for (auto &it: non_terminals_vector) {
             vector<string> state_follow = {};
-            if (it == non_terminals_vector[0]) {//if start symbol
+            if (it == start_symbol) {//if start symbol
                 state_follow.emplace_back("$");
             }
             for (auto &it2: non_terminals_vector) {
@@ -221,7 +221,8 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
         }
     }
 }
-map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> Parse_Table_Generator::getTable(const map<string,vector<vector<pair<string ,bool>>>>& m) {
+map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> Parse_Table_Generator::getTable
+(const map<string,vector<vector<pair<string ,bool>>>>& m,const string& start_symbol) {
     set<string>terminals = getTerminals(m);
     map<pair<string/*NT*/,basic_string<char>/*token*/>,vector<pair<basic_string<char>/*NT or Terminal*/,bool>>> table;
     map<string,vector<string>>follow;
@@ -229,7 +230,7 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
     set<string>nonTerminals = getNonTerminals(m);
     std::vector<string> non_terminals_vector(nonTerminals.begin(), nonTerminals.end());
     getFirst(m,first);
-    getFollow(m,follow);
+    getFollow(m,follow,start_symbol);
     //loop on all first
     for(auto&non_terminal:non_terminals_vector){
         vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>> first_of_non_term = first[non_terminal];
@@ -268,5 +269,5 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
 }
 
 bool Parse_Table_Generator::get_is_ambiguous() {
-        return is_ambigious;
+    return is_ambigious;
 }
