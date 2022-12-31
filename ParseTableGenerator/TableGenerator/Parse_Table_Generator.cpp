@@ -268,5 +268,5 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
 }
 
 bool Parse_Table_Generator::get_is_ambiguous() {
-    return false;
+        return is_ambigious;
 }
