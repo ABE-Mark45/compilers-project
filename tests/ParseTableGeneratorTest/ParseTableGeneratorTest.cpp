@@ -124,7 +124,7 @@ TEST(ParseTableGeneratorTest, tableTest) {
                     {{"F",  "id"}, {{"id", true}}}
             };
     map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr;
-    ASSERT_EQ(table.size(),expectedTable.size());
+    ASSERT_EQ(table.size(), expectedTable.size());
     for (itr = table.begin(); itr != table.end(); itr++) {
         map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr2;
         bool found = false;
@@ -136,9 +136,9 @@ TEST(ParseTableGeneratorTest, tableTest) {
                 break;
             }
         }
-        if(!found){
-            cout<<itr->first.first<<" "<<itr->first.second<<" ";
-            cout<<"Not found"<<endl;
+        if (!found) {
+            cout << itr->first.first << " " << itr->first.second << " ";
+            cout << "Not found" << endl;
         }
     }
 
