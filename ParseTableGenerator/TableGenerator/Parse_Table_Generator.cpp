@@ -224,6 +224,7 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
 map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> Parse_Table_Generator::getTable
 (const map<string,vector<vector<pair<string ,bool>>>>& m,const string& start_symbol) {
     set<string>terminals = getTerminals(m);
+    std::vector<string> terminals_vector(terminals.begin(), terminals.end());
     map<pair<string/*NT*/,basic_string<char>/*token*/>,vector<pair<basic_string<char>/*NT or Terminal*/,bool>>> table;
     map<string,vector<string>>follow;
     map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>first;
@@ -257,6 +258,7 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
         }
     }
     //loop on all nonTerminals and follow of them and put sync if cell is empty
+    vector<string>syncBeginStatements = {";","if","do","while","for","{","}"};
     for(auto&non_terminal:non_terminals_vector){
         vector<string>follow_of_non_term = follow[non_terminal];
         for(auto&follow_NT:follow_of_non_term){
@@ -265,6 +267,29 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
             }
         }
     }
+    //So put sync in the syncBeginStatements if empty cell
+    /*for(auto&non_terminal:non_terminals_vector){
+        vector<string>follow_of_non_term = follow[non_terminal];
+        for(auto&terminal:terminals_vector){
+            if(table.count({non_terminal,terminal})==0&&
+            std::count(syncBeginStatements.begin(), syncBeginStatements.end(), terminal)){
+                table[{non_terminal,terminal}] = {{"sync", true}};
+            }
+        }
+    }
+     //if epsilon is default transition
+     for(auto&non_terminal:non_terminals_vector){
+        vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>> first_of_non_term = first[non_terminal];
+        if(containsEps(first_of_non_term)){
+            for(auto&terminal:terminals_vector){
+                if(table.count({non_terminal,terminal})==0){
+                    table[{non_terminal,terminal}] = {};
+                }
+            }
+        }
+    }
+     */
+
     return table;
 }
 
