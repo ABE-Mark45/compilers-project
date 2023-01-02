@@ -1,6 +1,6 @@
 #pragma once
+#include <utils/CFGTypes.h>
 #include <string>
-#include "../CFGParser/CFGParser.h"
 
 class LL1Generator {
  public:

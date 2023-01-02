@@ -1,14 +1,8 @@
 #pragma once
+#include <utils/CFGTypes.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-using ProductionToken = std::pair<std::string, bool>;
-
-using ProductionContent = std::vector<ProductionToken>;
-
-using ProductionsTable =
-    std::unordered_map<std::string, std::vector<ProductionContent>>;
 
 class CFGParser {
  public:
