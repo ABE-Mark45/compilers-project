@@ -23,23 +23,12 @@ TEST(ParseTableGeneratorTest, firstTest) {
     map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>> expectedFirst =
             {
                     {"E",      {{"(", {{T,   false}, {E_dash, false}}},                  {"id",  {{T,    false}, {E_dash, false}}}}},
-                    {"E_dash", {{"+", {{"+", true},  {T,      false}, {E_dash, false}}}, {"\\L", {}}}},
+                    {"E'", {{"+", {{"+", true},  {T,      false}, {E_dash, false}}}, {"\\L", {}}}},
                     {"F",      {{"(", {{"(", true},  {E,      false}, {")",    true}}},  {"id",  {{"id", true}}}}},
                     {"T",      {{"(", {{F,   false}, {T_dash, false}}},                  {"id",  {{F,    false}, {T_dash, false}}}}},
-                    {"T_dash", {{"*", {{"*", true},  {F,      false}, {T_dash, false}}}, {"\\L", {}}}}
+                    {"T'", {{"*", {{"*", true},  {F,      false}, {T_dash, false}}}, {"\\L", {}}}}
             };
-    map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>::iterator itr;
-    for (itr = first.begin(); itr != first.end(); itr++) {
-        map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>::iterator itr2;
-
-        for (itr2 = expectedFirst.begin(); itr2 != expectedFirst.end(); itr2++) {
-            if (itr->first == itr2->first) {
-                //ASSERT_EQ(itr->first,itr2->first);
-                ASSERT_EQ(itr->second, itr2->second);
-                break;
-            }
-        }
-    }
+    ASSERT_EQ(first,expectedFirst);
 }
 
 TEST(ParseTableGeneratorTest, followTest) {
@@ -60,22 +49,12 @@ TEST(ParseTableGeneratorTest, followTest) {
     ParseTableGenerator::getFollow(m, follow, "E");
     map<string, vector<string>> expected_follow = {
             {"E",      {"$", ")"}},
-            {"E_dash", {"$", ")"}},
+            {"E'", {"$", ")"}},
             {"F",      {"*", "+", "$", ")"}},
             {"T",      {"+", "$", ")"}},
-            {"T_dash", {}}
+            {"T'", {"+", "$", ")"}}
     };
-    map<string, vector<string>>::iterator itr;
-    for (itr = follow.begin(); itr != follow.end(); itr++) {
-        map<string, vector<string>>::iterator itr2;
-        for (itr2 = expected_follow.begin(); itr2 != expected_follow.end(); itr2++) {
-            if (itr->first == itr2->first) {
-                //ASSERT_EQ(itr->first,itr2->first);
-                ASSERT_EQ(itr->second, itr2->second);
-                break;
-            }
-        }
-    }
+    ASSERT_EQ(follow,expected_follow);
 }
 
 TEST(ParseTableGeneratorTest, tableTest) {
@@ -123,23 +102,5 @@ TEST(ParseTableGeneratorTest, tableTest) {
                     {{"F",  "+"},  {{"#",  true}}},
                     {{"F",  "id"}, {{"id", true}}}
             };
-    map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr;
-    ASSERT_EQ(table.size(), expectedTable.size());
-    for (itr = table.begin(); itr != table.end(); itr++) {
-        map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr2;
-        bool found = false;
-        for (itr2 = expectedTable.begin(); itr2 != expectedTable.end(); itr2++) {
-            if (itr->first == itr2->first) {
-                //ASSERT_EQ(itr->first,itr2->first);
-                ASSERT_EQ(itr->second, itr2->second);
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            cout << itr->first.first << " " << itr->first.second << " ";
-            cout << "Not found" << endl;
-        }
-    }
-
+    ASSERT_EQ(table,expectedTable);
 }
