@@ -7,7 +7,7 @@
 #include "NFABuilder/NFABuilder.h"
 #include "Readers/LanguageRulesReader.h"
 #include "Readers/ProgramReader.h"
-#include "Simulator/Simulator.h"
+#include "Simulator/LexicalSimulator.h"
 #include "utils/DFAPrinter.h"
 
 auto main(int argc, char** argv) -> int {
@@ -43,22 +43,30 @@ auto main(int argc, char** argv) -> int {
   
   auto dfaStartState =  DFABuilder::minimizeDFA(DFABuilder::buildDFA(std::move(nfa)));
 
-  Simulator s(dfaStartState, tokensOutputFile);
-
+  // lexical analysis
+  LexicalSimulator s(dfaStartState);
   while (programReader.hasChar()) {
     s.consumeCharacter(programReader.getChar());
   }
-  
   s.finishSimulation();
 
-  // TODO: write in a file?
+  // lexical analysis errors
   if(s.getErrors().size()) {
-    std::cout << "found the following errors:\n";
+    std::cout << "found the following errors while doing lexical analysis:\n";
     for(auto& e: s.getErrors())
       std::cout << e << "\n";
   }
 
+  vector<string> lexicalTokens = s.getTokens();
 
-  printDFA(dfaStartState, tableOutputFile);
+
+  // printDFA(dfaStartState, tableOutputFile);
+
+  // ParserSimulator parserSim = ParserSimulator(table, topNT);
+
+  // for(auto& token: lexicalTokens) {
+  //   parserSim.consumeToken(token); // prints stack trace
+  // }
+
   return 0;
 }

@@ -1,16 +1,14 @@
-#include <Simulator/Simulator.h>
+#include <Simulator/LexicalSimulator.h>
 #include <optional>
 #include <string>
 #include <vector>
 
-Simulator::Simulator(std::shared_ptr<const dfa::State> startState,
-                     std::ostream& o)
+LexicalSimulator::LexicalSimulator(std::shared_ptr<const dfa::State> startState)
     : startState_(startState),
       currentState_(startState),
-      o_(o),
       lastAcceptingState_(nullptr) {}
 
-void Simulator::consumeCharacter(char character) {
+void LexicalSimulator::consumeCharacter(char character) {
   if (std::isspace(character) && currentState_ == startState_) {
     return;
   }
@@ -29,10 +27,10 @@ void Simulator::consumeCharacter(char character) {
   }
 }
 
-void Simulator::flushLastAcceptingState() {
+void LexicalSimulator::flushLastAcceptingState() {
   if (lastAcceptingState_) {
     // flush last accepting state and consume succeeding characters
-    o_ << lastAcceptingState_->getAcceptValue().value().value << '\n';
+    tokens.push_back(lastAcceptingState_->getAcceptValue().value().value);
     lastAcceptingState_.reset();
     currentState_ = startState_;
     std::vector<char> newInput = std::move(buffer);
@@ -42,13 +40,12 @@ void Simulator::flushLastAcceptingState() {
   } else if (!buffer.empty()) {
     auto errorMessage =
         "No matched token for " + std::string(buffer.begin(), buffer.end());
-    o_ << errorMessage << '\n';
     errors.emplace_back(errorMessage);
     buffer.clear();
   }
 }
 
-void Simulator::finishSimulation() {
+void LexicalSimulator::finishSimulation() {
   while (lastAcceptingState_) {
     flushLastAcceptingState();
   }
@@ -57,12 +54,16 @@ void Simulator::finishSimulation() {
   if (!buffer.empty()) {
     auto errorMessage =
         "No matched token for " + std::string(buffer.begin(), buffer.end());
-    o_ << errorMessage << '\n';
     errors.emplace_back(errorMessage);
     buffer.clear();
   }
 }
 
-std::vector<std::string> Simulator::getErrors() {
-  return errors;
+std::vector<std::string> LexicalSimulator::getErrors() {
+  return vector<string>(errors);
 }
+
+std::vector<std::string> LexicalSimulator::getTokens() {
+  return vector<string>(tokens);
+}
+

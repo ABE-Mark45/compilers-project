@@ -1,5 +1,6 @@
 set(SIMULATOR_SOURCES
-    Simulator.cpp
+    LexicalSimulator.cpp
+    ParserSimulator.cpp
 )
 
 add_library(Simulator STATIC ${SIMULATOR_SOURCES})

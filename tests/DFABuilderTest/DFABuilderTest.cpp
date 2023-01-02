@@ -8,9 +8,21 @@
 #include "NFABuilder/NFABuilder.h"
 #include "DFABuilder/DFABuilder.h"
 #include "LanguageRulesParser/LanguageRulesParser.h"
-#include "Simulator/Simulator.h"
+#include "Simulator/LexicalSimulator.h"
 
 using namespace std;
+
+template <typename T>
+string join(const T& v, const string& delim) {
+    ostringstream s;
+    for (const auto& i : v) {
+        if (&i != &v[0]) {
+            s << delim;
+        }
+        s << i;
+    }
+    return s.str();
+}
 
 TEST(DFABuilderTest, testMinimization1) {
   // sorry there is no asserts atm.
@@ -114,7 +126,7 @@ TEST(DFABuilderTest, test1) {
   auto dfaStartState =  DFABuilder::buildDFA(std::move(nfa));
 
   std::stringstream output;
-  Simulator s(dfaStartState, output);
+  LexicalSimulator s(dfaStartState);
 
   std::string program = "ifel";
   for(char c: program)
@@ -122,5 +134,5 @@ TEST(DFABuilderTest, test1) {
 
   s.finishSimulation();
 
-  ASSERT_EQ(output.str(), "if\nel\n");
+  ASSERT_EQ(join(s.getTokens(), "\n"), "if\nel");
 }
