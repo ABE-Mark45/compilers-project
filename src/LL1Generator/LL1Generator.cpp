@@ -51,8 +51,10 @@ void LL1Generator::removeEpsilonProductions(){
             }
         }
 
-        if (!removed_epsilon)
+        if (!removed_epsilon){
             std::cout<<"Warning: The language includes epsilon";
+            break;
+        }
     }
 }
 
