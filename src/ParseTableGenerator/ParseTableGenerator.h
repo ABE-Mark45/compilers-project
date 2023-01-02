@@ -4,7 +4,7 @@
 #include <utility>
 using namespace std;
 
-class Parse_Table_Generator {
+class ParseTableGenerator {
 public:
     static map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>
     getTable(const map<string, vector<vector<pair<string, bool>>>> &,const string& start_symbol);

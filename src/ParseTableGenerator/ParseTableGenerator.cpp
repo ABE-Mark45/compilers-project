@@ -4,7 +4,7 @@
 #include <map>
 #include <utility>
 #include <set>
-#include "Parse_Table_Generator.h"
+#include "ParseTableGenerator.h"
 using namespace std;
 bool is_ambigious = false;
 set<string>getTerminals(const map<string,vector<vector<pair<string ,bool>>>>&m){
@@ -32,7 +32,7 @@ set<string>getNonTerminals(const map<string,vector<vector<pair<string ,bool>>>>&
 }
 
 
-void  Parse_Table_Generator::getFirst(const map<string,vector<vector<pair<string ,bool>>>>&m,
+void  ParseTableGenerator::getFirst(const map<string,vector<vector<pair<string ,bool>>>>&m,
                                       map<basic_string<char>, vector<pair<basic_string<char>, vector<pair<basic_string<char>, bool>>>>>&first){
     //map<string,vector<pair<string,vector<pair<string,bool>>>>>
     //if first is not changed from last loop so there is recursion
@@ -112,7 +112,7 @@ bool containsEps(const vector<pair<basic_string<char>, vector<pair<basic_string<
     }
     return false;
 }
-void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string ,bool>>>>&m,
+void ParseTableGenerator::getFollow(const map<string,vector<vector<pair<string ,bool>>>>&m,
                                       map<string,vector<string>>& follow,const string& start_symbol){
 //We don't need to know which equation gave us this follow so only this map is good
 
@@ -221,7 +221,7 @@ void Parse_Table_Generator::getFollow(const map<string,vector<vector<pair<string
         }
     }
 }
-map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> Parse_Table_Generator::getTable
+map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool>>> ParseTableGenerator::getTable
 (const map<string,vector<vector<pair<string ,bool>>>>& m,const string& start_symbol) {
     set<string>terminals = getTerminals(m);
     std::vector<string> terminals_vector(terminals.begin(), terminals.end());
@@ -293,6 +293,6 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
     return table;
 }
 
-bool Parse_Table_Generator::get_is_ambiguous() {
+bool ParseTableGenerator::get_is_ambiguous() {
     return is_ambigious;
 }
