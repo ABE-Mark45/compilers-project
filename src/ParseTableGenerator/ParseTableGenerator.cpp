@@ -258,22 +258,23 @@ map<pair<string/*NT*/,string/*token*/>,vector<pair<string/*NT or Terminal*/,bool
         }
     }
     //loop on all nonTerminals and follow of them and put sync if cell is empty
-    vector<string>syncBeginStatements = {";","if","do","while","for","{","}"};
     for(auto&non_terminal:non_terminals_vector){
         vector<string>follow_of_non_term = follow[non_terminal];
         for(auto&follow_NT:follow_of_non_term){
             if(table.count({non_terminal,follow_NT})==0){
-                table[{non_terminal,follow_NT}] = {{"sync", true}};
+                table[{non_terminal,follow_NT}] = {{"#", true}};//sync
             }
         }
     }
     //So put sync in the syncBeginStatements if empty cell
-    /*for(auto&non_terminal:non_terminals_vector){
+    /*
+    vector<string>syncBeginStatements = {";","if","do","while","for","{","}"};
+    for(auto&non_terminal:non_terminals_vector){
         vector<string>follow_of_non_term = follow[non_terminal];
         for(auto&terminal:terminals_vector){
             if(table.count({non_terminal,terminal})==0&&
             std::count(syncBeginStatements.begin(), syncBeginStatements.end(), terminal)){
-                table[{non_terminal,terminal}] = {{"sync", true}};
+                table[{non_terminal,terminal}] = {{"#", true}};//sync
             }
         }
     }
