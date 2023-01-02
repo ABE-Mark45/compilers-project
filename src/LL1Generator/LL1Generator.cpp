@@ -1,11 +1,59 @@
 #include "./LL1Generator.h"
 #include <set>
+#include <unordered_set>
 #include <iostream>
 #include <algorithm>
 
 
 void LL1Generator::removeEpsilonProductions(){
-    //TODO
+    // while some non-terminals still have epsilon productions
+    //      for each non terminal:
+    //          if it has an epsilon production, mark it and remove the production
+    //      for each non terminal:
+    //          for each production:
+    //              for each NT in production (including the productions that are added in the meantime):
+    //                  if NT has an epsilon production
+    //                      add a production without it
+    //      if no epsilon production could be eliminated in this pass
+    //          break because the language includes the empty string
+
+    while(true){
+        bool removed_epsilon = false;
+        std::unordered_set<std::string> has_epsilon;
+        for (auto& [key, val]: table_){
+            for (auto it = val.begin(); it < val.end(); it++){
+                auto p = *it;
+                if (p.empty()){
+                    has_epsilon.insert(key);
+                    val.erase(it);
+                    break;
+                }
+            }
+        }
+
+        if (has_epsilon.empty()) // Done!
+            break;
+
+        for (auto& [key, val]: table_){
+            for (int i = 0; i < (int)val.size(); i++){
+                auto prod = val[i];
+                for (int j = 0; j < (int)prod.size(); j++){
+                    auto term = prod[j];
+                    if (!term.second && has_epsilon.contains(term.first)){
+                        removed_epsilon = true;
+                        ProductionContent new_production;
+                        for (int k = 0; k < (int)prod.size(); k++)
+                            if (k != j)
+                                new_production.emplace_back(prod[k]);
+                        val.emplace_back(new_production);
+                    }
+                }
+            }
+        }
+
+        if (!removed_epsilon)
+            std::cout<<"Warning: The language includes epsilon";
+    }
 }
 
 void LL1Generator::removeCycles(){
@@ -183,6 +231,7 @@ LL1Generator::LL1Generator(ProductionsTable& table_in): table_(table_in){
     removeEpsilonProductions();
     removeCycles();
 
+    // TODO, make changes only if needed
     eliminateLeftRecursion();
 
     leftFactor();

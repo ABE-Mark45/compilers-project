@@ -195,3 +195,108 @@ TEST(LL1GeneratorTest, AlreadyLL1) {
 
   ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
 }
+
+TEST(LL1GeneratorTest, RemoveEpsilon) {
+
+  ProductionsTable inputTable{
+      {"A",
+       {
+        {{"a", true}, {"B", false}}
+       }
+      },
+      {"B",
+       {
+        {{"b", true}, {"C", false}, {"b", true}},
+        {}
+       }
+      },
+      {"C",
+       {
+        {{"c", false}},
+        {}
+       }
+      }
+    };
+
+  // Epsilon productions are empty vectors
+  const ProductionsTable outputTable{
+      {"A",
+       {
+        {{"a", true}, {"A#0", false}}
+       }
+      },
+      {"A#0",
+        {
+          {},
+          {{"B", false}}
+        }
+      },
+      {"B",
+       {
+        {{"b", true}, {"B#0", false}}
+       }
+      },
+      {"B#0",
+        {
+          {{"C", false}, {"b", true}},
+          {{"b", true}}
+        }
+      },
+      {"C",
+       {
+        {{"c", false}}
+       }
+      }
+    };
+
+  LL1Generator ll1Generator(inputTable);
+
+  ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
+}
+
+
+/*
+UGHHHH I need to remove redundant productions.. 
+TEST(LL1GeneratorTest, RemoveEpsilon2) {
+
+  ProductionsTable inputTable{
+      {"A",
+       {
+        {{"B", false}, {"a", true}, {"B", false}}
+       }
+      },
+      {"B",
+       {
+        {{"b", true}},
+        {}
+       }
+      },
+      {"C",
+        {
+          {{"B", false}}
+        }
+      }
+    };
+
+  // Epsilon productions are empty vectors
+  const ProductionsTable outputTable{
+      {"A",
+       {
+        {{"B", false},{"B", false}},
+        {{"B", false}},
+        {{"B", false}},
+        {} //TODO
+       }
+      },
+      {"B",
+       {
+        {{"b", true}},
+        {}
+       }
+      }
+    };
+
+  LL1Generator ll1Generator(inputTable);
+
+  ASSERT_EQ(outputTable, ll1Generator.getProductionsTable());
+}*/
