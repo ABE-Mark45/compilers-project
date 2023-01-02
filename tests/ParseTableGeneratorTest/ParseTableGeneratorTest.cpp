@@ -124,15 +124,21 @@ TEST(ParseTableGeneratorTest, tableTest) {
                     {{"F",  "id"}, {{"id", true}}}
             };
     map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr;
-
+    ASSERT_EQ(table.size(),expectedTable.size());
     for (itr = table.begin(); itr != table.end(); itr++) {
         map<pair<string/*NT*/, string/*token*/>, vector<pair<string/*NT or Terminal*/, bool>>>::iterator itr2;
+        bool found = false;
         for (itr2 = expectedTable.begin(); itr2 != expectedTable.end(); itr2++) {
             if (itr->first == itr2->first) {
                 //ASSERT_EQ(itr->first,itr2->first);
                 ASSERT_EQ(itr->second, itr2->second);
+                found = true;
                 break;
             }
+        }
+        if(!found){
+            cout<<itr->first.first<<" "<<itr->first.second<<" ";
+            cout<<"Not found"<<endl;
         }
     }
 
