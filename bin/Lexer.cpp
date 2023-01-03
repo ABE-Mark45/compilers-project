@@ -91,8 +91,6 @@ auto main(int argc, char** argv) -> int {
   // print lexical parser DFA
   printDFA(dfaStartState, tableOutputFile);
 
-  cout << "starting CFG parsing .. \n";
-
   // construct CFG parser production table
   CFGParser cfgParser;
   string line = "";
@@ -101,13 +99,13 @@ auto main(int argc, char** argv) -> int {
   }
   ProductionsTable pt = cfgParser.getProductionsTable();
 
-  printProductionTable(pt);
+  // printProductionTable(pt);
 
   // left factor & .. etc
   LL1Generator llg(pt);
   ProductionsTable pt_modified = llg.getProductionsTable();    
 
-  printProductionTable(pt_modified);
+  // printProductionTable(pt_modified);
 
   // get parse table 
   ProductionToken topNT = {"METHOD_BODY", false};
