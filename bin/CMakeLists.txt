@@ -9,4 +9,8 @@ DFABuilder
 LanguageRulesParser
 NFABuilder
 Readers
-Simulator)
+Simulator
+CFGParser
+LL1Generator
+ParseTableGenerator
+)

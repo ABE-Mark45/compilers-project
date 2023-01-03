@@ -205,6 +205,20 @@ FollowMap ParseTableGenerator::getFollowMap(
     return follow;
 }
 
+void printSet(set<string> s){ 
+    for(auto x: s){
+        cout << x << " ";
+    }cout << endl;
+}
+
+
+void printSet(unordered_set<string> s){ 
+    for(auto x: s){
+        cout << x << " ";
+    }cout << endl;
+}
+
+
 ParseTable ParseTableGenerator::getTable(
         const ProductionsTable &productionsTable, const string &start_symbol) {
     set<string> terminals = getTerminals(productionsTable);
@@ -212,6 +226,8 @@ ParseTable ParseTableGenerator::getTable(
     auto nonTerminals = getNonTerminals(productionsTable);
     const auto first = getFirstMap(productionsTable);
     const auto follow = getFollowMap(productionsTable, first, start_symbol);
+
+    cout << "...1\n";
     //loop on all first
     for (auto &non_terminal: nonTerminals) {
         auto first_of_non_term = first.at(non_terminal);
@@ -238,8 +254,12 @@ ParseTable ParseTableGenerator::getTable(
             }
         }
     }
+    cout <<" ... 2\n";
     //loop on all nonTerminals and follow of them and put sync if cell is empty
     for (auto &non_terminal: nonTerminals) {
+        if(follow.count(non_terminal)==0){
+            continue;
+        }
         auto follow_of_non_term = follow.at(non_terminal);
         for (auto &follow_NT: follow_of_non_term) {
             if (table.count({non_terminal, follow_NT}) == 0) {
@@ -247,6 +267,7 @@ ParseTable ParseTableGenerator::getTable(
             }
         }
     }
+    cout << "...3\n";
     //So put sync in the syncBeginStatements if empty cell
     /*
       vector<string>syncBeginStatements = {";","if","do","while","for","{","}"};

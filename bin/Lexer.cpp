@@ -9,11 +9,38 @@
 #include "Readers/ProgramReader.h"
 #include "Simulator/LexicalSimulator.h"
 #include "utils/DFAPrinter.h"
+#include "LL1Generator/LL1Generator.h"
+#include "Simulator/ParserSimulator.h"
+#include "ParseTableGenerator/ParseTableGenerator.h"
+
+
+// print productionTable
+void printProductionTable(ProductionsTable pt){
+  cout << "Production Table:" << endl;
+  for(auto& [nt, productions]: pt){
+    cout << nt << " -> ";
+    for(auto& production: productions){
+      for(auto& token: production){
+        cout << token.first << " ";
+      }
+      cout << "| ";
+    }
+    cout << endl;
+  }
+  cout << " -------------- "<< endl;
+}
+
+// print vector of strings to file
+void printVectorToFile(std::ofstream& file, std::vector<std::string> v){
+  for(auto& s: v){
+    file << s << endl;
+  }
+}
 
 auto main(int argc, char** argv) -> int {
-  if (argc != 5) {
+  if (argc != 6) {
     throw std::runtime_error(
-        "Lexer <rules_path> <program_path> <table_out_path> <tokens_out_path>");
+        "Lexer <rules_path> <program_path> <grammar_path> <table_out_path> <tokens_out_path>");
   }
   const std::filesystem::path rulesFilePath{argv[1]};
   LanguageRulesReader rulesReader(rulesFilePath);
@@ -21,14 +48,17 @@ auto main(int argc, char** argv) -> int {
   const std::filesystem::path programFilePath{argv[2]};
   ProgramReader programReader(programFilePath);
 
-  const std::filesystem::path tableOutputPath{argv[3]};
+  const std::filesystem::path grammarFilePath{argv[3]};
+  LanguageRulesReader grammarReader(grammarFilePath);
+
+  const std::filesystem::path tableOutputPath{argv[4]};
   std::ofstream tableOutputFile(tableOutputPath,
                                 std::ios::out | std::ios::trunc);
 
-  const std::filesystem::path tokensOutputPath{argv[4]};
+  const std::filesystem::path tokensOutputPath{argv[5]};
   std::ofstream tokensOutputFile(tokensOutputPath,
                                  std::ios::out | std::ios::trunc);
-
+  // construct lexical parser
   LanguageRulesParser parser;
   while (auto rule = rulesReader.getLine()) {
     parser.parseLine(rule.value());
@@ -39,7 +69,6 @@ auto main(int argc, char** argv) -> int {
       parser.getPunctuationCharacters(), parser.getPriorities());
 
   auto nfa = nfaBuilder.getCombinedNFA();
-
   
   auto dfaStartState =  DFABuilder::minimizeDFA(DFABuilder::buildDFA(std::move(nfa)));
 
@@ -56,17 +85,45 @@ auto main(int argc, char** argv) -> int {
     for(auto& e: s.getErrors())
       std::cout << e << "\n";
   }
-
   vector<string> lexicalTokens = s.getTokens();
+  printVectorToFile(tokensOutputFile, lexicalTokens);
+  
+  // print lexical parser DFA
+  printDFA(dfaStartState, tableOutputFile);
 
+  cout << "starting CFG parsing .. \n";
 
-  // printDFA(dfaStartState, tableOutputFile);
+  // construct CFG parser production table
+  CFGParser cfgParser;
+  while (auto rule = grammarReader.getLine()) {
+    cout << rule.value() << endl;
+    cfgParser.parseLine(rule.value());
+  }
+  cout << "as\n";
+  ProductionsTable pt = cfgParser.getProductionsTable();
 
-  // ParserSimulator parserSim = ParserSimulator(table, topNT);
+  printProductionTable(pt);
 
-  // for(auto& token: lexicalTokens) {
-  //   parserSim.consumeToken(token); // prints stack trace
-  // }
+  cout << "left factoring .. \n";
+  // left factor & .. etc
+  LL1Generator llg(pt);
+  ProductionsTable pt_modified = llg.getProductionsTable();    
 
+  printProductionTable(pt_modified);
+
+  cout << "generate parse table .. \n";
+  // get parse table 
+  ProductionToken topNT = {"METHOD_BODY", false};
+  const ParseTable parseTable = ParseTableGenerator::getTable(pt_modified, topNT.first);
+  
+  cout << "simualte .. \n";
+  
+  ParserSimulator parserSimulator(parseTable, topNT);
+  // simulate the CFG stack parsing
+  for(string token: lexicalTokens) {
+    parserSimulator.consumeToken(token);
+  }
+  parserSimulator.consumeToken("$");
   return 0;
 }
+

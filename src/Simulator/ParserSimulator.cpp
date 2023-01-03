@@ -74,7 +74,7 @@ bool ParserSimulator::isٍٍٍSyncProduction(ProductionContent pt) {
 
 void ParserSimulator::printTokens(vector<ProductionToken> v){ 
   for(ProductionToken pt: v) {
-    cout<< pt.first;
+    cout<< pt.first <<" ";
   }
 }
 
