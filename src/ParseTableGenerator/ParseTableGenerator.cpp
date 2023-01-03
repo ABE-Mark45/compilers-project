@@ -165,13 +165,15 @@ FollowMap ParseTableGenerator::getFollowMap(
                                         }
                                         i++;
                                     }
-                                    if (!prod[i - 1].second && !containsEps(firstMap.find(prod[i - 1].first)->second)) {
-                                        auto first_of_st = firstMap.find(prod[i - 1].first)->second;
+                                    if (i<prod.size()&&!prod[i].second && !containsEps(firstMap.find(prod[i].first)->second)) {
+                                        auto first_of_st = firstMap.find(prod[i].first)->second;
+                                        cout<<prod[i].first<<endl;
+
                                         for (auto &j: first_of_st) {
                                             state_follow.emplace(j.first);
                                         }
-                                    } else if (prod[i - 1].second) {
-                                        state_follow.emplace(prod[i - 1].first);
+                                    } else if (i<prod.size()&&prod[i].second) {
+                                        state_follow.emplace(prod[i].first);
                                     } else {//not terminal --> nonTerminal but its first has epsilon or i == production.size() and all went to eps
                                         if (follow.count(it2) > 0) {
                                             for (auto &follow_state: follow.find(it2)->second) {
