@@ -12,7 +12,7 @@
 #include "LL1Generator/LL1Generator.h"
 #include "Simulator/ParserSimulator.h"
 #include "ParseTableGenerator/ParseTableGenerator.h"
-
+#include "Readers/CFGReader.h"
 
 // print productionTable
 void printProductionTable(ProductionsTable pt){
@@ -49,7 +49,7 @@ auto main(int argc, char** argv) -> int {
   ProgramReader programReader(programFilePath);
 
   const std::filesystem::path grammarFilePath{argv[3]};
-  LanguageRulesReader grammarReader(grammarFilePath);
+  CFGReader grammarReader(grammarFilePath);
 
   const std::filesystem::path tableOutputPath{argv[4]};
   std::ofstream tableOutputFile(tableOutputPath,
@@ -95,28 +95,23 @@ auto main(int argc, char** argv) -> int {
 
   // construct CFG parser production table
   CFGParser cfgParser;
+  string line = "";
   while (auto rule = grammarReader.getLine()) {
-    cout << rule.value() << endl;
     cfgParser.parseLine(rule.value());
   }
-  cout << "as\n";
   ProductionsTable pt = cfgParser.getProductionsTable();
 
   printProductionTable(pt);
 
-  cout << "left factoring .. \n";
   // left factor & .. etc
   LL1Generator llg(pt);
   ProductionsTable pt_modified = llg.getProductionsTable();    
 
   printProductionTable(pt_modified);
 
-  cout << "generate parse table .. \n";
   // get parse table 
   ProductionToken topNT = {"METHOD_BODY", false};
   const ParseTable parseTable = ParseTableGenerator::getTable(pt_modified, topNT.first);
-  
-  cout << "simualte .. \n";
   
   ParserSimulator parserSimulator(parseTable, topNT);
   // simulate the CFG stack parsing

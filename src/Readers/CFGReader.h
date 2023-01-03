@@ -4,14 +4,14 @@
 #include <optional>
 #include <string>
 
-class LanguageRulesReader {
+class CFGReader {
  public:
-  explicit LanguageRulesReader(const std::filesystem::path& rulesFilePath);
-  LanguageRulesReader() = delete;
+  explicit CFGReader(const std::filesystem::path& rulesFilePath);
+  CFGReader() = delete;
 
   std::optional<std::string> getLine();
 
  private:
   std::ifstream inputFile_;
+  std::string str;
 };
-
