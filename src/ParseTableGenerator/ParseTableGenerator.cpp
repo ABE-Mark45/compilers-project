@@ -81,6 +81,8 @@ FirstMap ParseTableGenerator::getFirstMap(
                                 if (!go_to_eps) {
                                     break;
                                 }
+                            } else { // Not computed so don't continue in this production and get first of others till making sure that it goes to epsilon
+                                break;
                             }
                         }
                     }
