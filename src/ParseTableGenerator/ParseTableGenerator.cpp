@@ -98,20 +98,26 @@ FirstMap ParseTableGenerator::getFirstMap(
         }
     }
     //there is a case not handled when all in RHS go to epsilon add epsilon transition
-    for (auto &it: nonTerminals) {
-        auto vec = productionsTable.find(it)->second;
-        for (const auto &j: vec) {
-            bool all_eps = true;
-            for (auto &k: j) {
-                if (!(!k.second && containsEps(first[k.first]))) {
-                    //it is terminal so the first is itself
-                    all_eps = false;
-                    break;  //Don't look at the rest before or
+    while(true) {
+        prev_first = first;
+        for (auto &it: nonTerminals) {
+            auto vec = productionsTable.find(it)->second;
+            for (const auto &j: vec) {
+                bool all_eps = true;
+                for (auto &k: j) {
+                    if (!(!k.second && containsEps(first[k.first]))) {
+                        //it is terminal so the first is itself
+                        all_eps = false;
+                        break;  //Don't look at the rest before or
+                    }
+                }
+                if (all_eps) {
+                    first[it].insert({"\\L", {}});
                 }
             }
-            if (all_eps) {
-                first[it].insert({"\\L", {}});
-            }
+        }
+        if(first == prev_first){
+            break;
         }
     }
     return first;
@@ -165,13 +171,15 @@ FollowMap ParseTableGenerator::getFollowMap(
                                         }
                                         i++;
                                     }
-                                    if (!prod[i - 1].second && !containsEps(firstMap.find(prod[i - 1].first)->second)) {
-                                        auto first_of_st = firstMap.find(prod[i - 1].first)->second;
+                                    if (i<prod.size()&&!prod[i].second && !containsEps(firstMap.find(prod[i].first)->second)) {
+                                        auto first_of_st = firstMap.find(prod[i].first)->second;
+                                        cout<<prod[i].first<<endl;
+
                                         for (auto &j: first_of_st) {
                                             state_follow.emplace(j.first);
                                         }
-                                    } else if (prod[i - 1].second) {
-                                        state_follow.emplace(prod[i - 1].first);
+                                    } else if (i<prod.size()&&prod[i].second) {
+                                        state_follow.emplace(prod[i].first);
                                     } else {//not terminal --> nonTerminal but its first has epsilon or i == production.size() and all went to eps
                                         if (follow.count(it2) > 0) {
                                             for (auto &follow_state: follow.find(it2)->second) {
