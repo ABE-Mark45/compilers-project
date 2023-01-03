@@ -216,6 +216,41 @@ TEST(followTest5, follow5) {
     ASSERT_EQ(follow, expected_follow);
 }
 
+
+TEST(firstTest6, first6) {
+    string S = "S";
+    string A = "A";
+    string B = "B";
+    ProductionsTable m;
+    m[S] = {{{A, false}, {"a", true}, {A, false}, {"b", true}},
+            {{B, false}, {"b", true}, {B, false}, {"a", true}}};
+    m[A] = {{}};
+    m[B] = {{}};
+    const auto first = ParseTableGenerator::getFirstMap(m);
+    const FirstMap expectedFirst = {{S, {{"a",   {{A, false}, {"a", true}, {A, false}, {"b", true}}}, {"b", {{B, false}, {"b", true}, {B, false}, {"a", true}}}}},
+                                    {A, {{"\\L", {}}}},
+                                    {B, {{"\\L", {}}}}};
+    ASSERT_EQ(first, expectedFirst);
+}
+
+TEST(followTest6, follow6) {
+    string S = "S";
+    string A = "A";
+    string B = "B";
+    ProductionsTable m;
+    m[S] = {{{A, false}, {"a", true}, {A, false}, {"b", true}},
+            {{B, false}, {"b", true}, {B, false}, {"a", true}}};
+    m[A] = {{}};
+    m[B] = {{}};
+    const auto first = ParseTableGenerator::getFirstMap(m);
+
+    const auto follow = ParseTableGenerator::getFollowMap(m, first, "S");
+    const FollowMap expected_follow = {{S, {"$"}},
+                                       {A, {"a", "b"}},
+                                       {B, {"a", "b"}}};
+    ASSERT_EQ(follow, expected_follow);
+}
+
 TEST(ParseTableGeneratorTest, tableTest) {
     ProductionsTable m;
     const string E = "E";
