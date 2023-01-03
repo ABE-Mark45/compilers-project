@@ -98,20 +98,26 @@ FirstMap ParseTableGenerator::getFirstMap(
         }
     }
     //there is a case not handled when all in RHS go to epsilon add epsilon transition
-    for (auto &it: nonTerminals) {
-        auto vec = productionsTable.find(it)->second;
-        for (const auto &j: vec) {
-            bool all_eps = true;
-            for (auto &k: j) {
-                if (!(!k.second && containsEps(first[k.first]))) {
-                    //it is terminal so the first is itself
-                    all_eps = false;
-                    break;  //Don't look at the rest before or
+    while(true) {
+        prev_first = first;
+        for (auto &it: nonTerminals) {
+            auto vec = productionsTable.find(it)->second;
+            for (const auto &j: vec) {
+                bool all_eps = true;
+                for (auto &k: j) {
+                    if (!(!k.second && containsEps(first[k.first]))) {
+                        //it is terminal so the first is itself
+                        all_eps = false;
+                        break;  //Don't look at the rest before or
+                    }
+                }
+                if (all_eps) {
+                    first[it].insert({"\\L", {}});
                 }
             }
-            if (all_eps) {
-                first[it].insert({"\\L", {}});
-            }
+        }
+        if(first == prev_first){
+            break;
         }
     }
     return first;
