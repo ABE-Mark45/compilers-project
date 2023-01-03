@@ -11,24 +11,26 @@ ParserSimulator::ParserSimulator(map<pair<NT,string>,ProductionContent> table, P
 }
 
 void ParserSimulator::consumeToken(string token) {
-  NT nt = tokenStack.back().first;
+  NT stackToken = tokenStack.back().first;
   
   history.push_back(tokenStack);
   printTokens(tokenStack); cout << '\t';
 
   if(isTerminalToken(tokenStack.back())) {
-    if(token == nt){
+    if(token == stackToken){
       tokenStack.pop_back();
+      cout << endl;
     } else {
       // TODO: handle error
-      string err = "Error: missing token \"" + token + "\", inserted.";
+      string err = "Error: missing token \"" + stackToken + "\", inserted.";
       cout << err << endl;;
       errors.push_back(err);
       tokenStack.pop_back();
+      consumeToken(token);
     }
   } else {
-    if(table.find({nt, token}) != table.end()) {
-      ProductionContent pc = table[{nt, token}];
+    if(table.find({stackToken, token}) != table.end()) {
+      ProductionContent pc = table[{stackToken, token}];
 
       if(isٍٍٍSyncProduction(pc)) {
         tokenStack.pop_back();
@@ -41,14 +43,14 @@ void ParserSimulator::consumeToken(string token) {
         tokenStack.insert(tokenStack.end(), pc.begin() , pc.end());
 
         reverse(pc.begin(), pc.end());
-        printProduction(nt, pc);
+        printProduction(stackToken, pc);
         cout << '\n';  
       }
 
       consumeToken(token);
     } else {
       //TODO: handle error
-      string err = "Error:(illegal \""+ nt +"\") – discard " + token;
+      string err = "Error:(illegal \""+ stackToken +"\") – discard " + token;
       cout << err << endl;
       errors.push_back(err);
 
@@ -56,6 +58,12 @@ void ParserSimulator::consumeToken(string token) {
   }
 }
 
+
+// get history of the parsing process
+vector<vector<ProductionToken>> ParserSimulator::getHistory() {
+  return history;
+}
+  
 bool ParserSimulator::isTerminalToken(ProductionToken pt){
   return pt.second;
 }

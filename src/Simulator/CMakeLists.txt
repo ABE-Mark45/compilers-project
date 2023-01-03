@@ -4,5 +4,4 @@ set(SIMULATOR_SOURCES
 )
 
 add_library(Simulator STATIC ${SIMULATOR_SOURCES})
-target_include_directories(Simulator PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(Simulator PUBLIC DFA)
+target_include_directories(Simulator PUBLIC ${PROJECT_SOURCE_DIR}/src)

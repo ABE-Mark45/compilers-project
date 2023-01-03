@@ -12,7 +12,8 @@ using namespace std;
 using NT = string;  // Non-Terminal Token
 
 const string END_INPUT_TOKEN = "$";
-const string SYNC_TOKEN = "#";
+const string SYNC_TOKEN_STRING = "#";
+const pair<NT, bool> SYNC_TOKEN = {SYNC_TOKEN_STRING, true};
 
 class ParserSimulator {
  public:
@@ -23,7 +24,7 @@ class ParserSimulator {
   void consumeToken(string token);
 
   vector<string> getErrors();
-
+  vector<vector<ProductionToken>> getHistory();
  private:
   void printProduction(NT nt, ProductionContent pc);
   void printTokens(vector<ProductionToken> v);
