@@ -110,6 +110,10 @@ auto main(int argc, char** argv) -> int {
   // get parse table 
   ProductionToken topNT = {"METHOD_BODY", false};
   const ParseTable parseTable = ParseTableGenerator::getTable(pt_modified, topNT.first);
+  if(ParseTableGenerator::get_is_ambiguous()){
+    std::cout << "The grammar is ambiguous" << std::endl;
+    return 0;
+  }
   
   ParserSimulator parserSimulator(parseTable, topNT);
   // simulate the CFG stack parsing
@@ -117,6 +121,13 @@ auto main(int argc, char** argv) -> int {
     parserSimulator.consumeToken(token);
   }
   parserSimulator.consumeToken("$");
+
+  // if(!parserSimulator.getErrors().empty()) {
+  //   cout << "parsing failed - parsing erros:\n";
+  //   // print errors
+  //   for(auto& e: parserSimulator.getErrors())
+  //     cout << e << "\n";
+  // }
   return 0;
 }
 

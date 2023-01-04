@@ -58,6 +58,10 @@ void ParserSimulator::consumeToken(string token) {
   }
 }
 
+// get errors
+vector<string> ParserSimulator::getErrors() {
+  return vector<string>(errors);
+}
 
 // get history of the parsing process
 vector<vector<ProductionToken>> ParserSimulator::getHistory() {
