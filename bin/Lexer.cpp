@@ -14,6 +14,7 @@
 #include "ParseTableGenerator/ParseTableGenerator.h"
 #include "Readers/CFGReader.h"
 
+
 // print productionTable
 void printProductionTable(ProductionsTable pt){
   cout << "Production Table:" << endl;
@@ -25,6 +26,19 @@ void printProductionTable(ProductionsTable pt){
       }
       cout << "| ";
     }
+    cout << endl;
+  }
+  cout << " -------------- "<< endl;
+}
+
+// print parsing table
+void printParsingTable(const ParseTable& parseTable){
+  cout << "Parsing Table:" << endl;
+  for(auto& [nt, ProductionContent]: parseTable){
+    cout << "(" << nt.first << "," << nt.second << ")" << " --> ";
+      for(auto& [token, isNT]: ProductionContent){
+        cout << token << " ";
+      }
     cout << endl;
   }
   cout << " -------------- "<< endl;
@@ -114,6 +128,8 @@ auto main(int argc, char** argv) -> int {
     std::cout << "The grammar is ambiguous" << std::endl;
     return 0;
   }
+
+  printParsingTable(parseTable);
   
   ParserSimulator parserSimulator(parseTable, topNT);
   // simulate the CFG stack parsing
