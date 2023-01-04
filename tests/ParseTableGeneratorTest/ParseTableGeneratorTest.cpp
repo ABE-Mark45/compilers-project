@@ -251,6 +251,48 @@ TEST(followTest6, follow6) {
     ASSERT_EQ(follow, expected_follow);
 }
 
+TEST(firstTest7, first7) {
+    string S = "S";
+    string A = "A";
+    string B = "B";
+    string C = "C";
+    ProductionsTable m;
+    m[S] = {{{A, false},{C, false},{B, false}},{{C, false},{"b", true},{B, false}},{{B, false},{"a", true}}};
+    m[A] = {{{"d", true},{"a", true}},{{B, false},{C, false}}};
+    m[B] = {{{"g", true}},{}};
+    m[C] = {{{"h", true}},{}};
+    const auto first = ParseTableGenerator::getFirstMap(m);
+    const FirstMap expectedFirst = {{A,{{"d",{{"d", true},{"a", true}}},{"g",{{B, false},{C, false}}},{"h",{{B, false},{C, false}}},{"\\L",{}}}},
+                                    {B,{{"g",{{"g", true}}},{"\\L",{}}}},
+                                    {C,{{"h",{{"h", true}}},{"\\L",{}}}},
+                                    {S, {{"d",{{A, false},{C, false},{B, false}}},
+                                    {"g",{{A, false},{C, false},{B, false}}},{"g",{{B, false},{"a", true}}},
+                                    {"h",{{A, false},{C, false},{B, false}}},{"h",{{C, false},{"b", true},{B, false}}},
+                                    {"\\L",{}},
+                                    {"a",{{B, false},{"a", true}}},
+                                    {"b",{{C, false},{"b", true},{B, false}}}}}};
+    ASSERT_EQ(first, expectedFirst);
+}
+
+TEST(followTest7, follow7) {
+    string S = "S";
+    string A = "A";
+    string B = "B";
+    string C = "C";
+    ProductionsTable m;
+    m[S] = {{{A, false},{C, false},{B, false}},{{C, false},{"b", true},{B, false}},{{B, false},{"a", true}}};
+    m[A] = {{{"d", true},{"a", true}},{{B, false},{C, false}}};
+    m[B] = {{{"g", true}},{}};
+    m[C] = {{{"h", true}},{}};
+    const auto first = ParseTableGenerator::getFirstMap(m);
+    const auto follow = ParseTableGenerator::getFollowMap(m, first, "S");
+    const FollowMap expected_follow = {{S, {"$"}},
+                                       {A, {"h","g","$"}},
+                                       {B, {"$","a","h","g"}},
+                                       {C, {"g","$","b","h"}}};
+    ASSERT_EQ(follow, expected_follow);
+}
+
 TEST(ParseTableGeneratorTest, tableTest) {
     ProductionsTable m;
     const string E = "E";
